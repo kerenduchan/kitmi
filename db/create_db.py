@@ -4,7 +4,7 @@ import db.name
 import db.schema
 
 
-async def _async_main():
+async def create_db():
     print('creating db')
 
     engine = sqlalchemy.ext.asyncio.create_async_engine(
@@ -16,6 +16,3 @@ async def _async_main():
         await conn.run_sync(db.schema.Base.metadata.create_all)
 
     await engine.dispose()
-
-if __name__ == '__main__':
-    asyncio.run(_async_main())
