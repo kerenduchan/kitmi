@@ -5,31 +5,28 @@ import uuid
 import crypto
 
 
-async def get_all(class_name, order_by_column_name):
+async def get_all(session, class_name, order_by_column_name):
     print(f"DB: get_all {class_name} order by {order_by_column_name}")
     db_schema_class = getattr(db.schema, class_name)
     order_by_column = getattr(db_schema_class, order_by_column_name)
 
-    async with db.session.get_session() as s:
-        sql = sqlalchemy.select(db_schema_class).order_by(order_by_column)
-        recs = (await s.execute(sql)).scalars().unique().all()
-        print(f'DB: get all {class_name} ordered by {order_by_column_name}:', recs)
-        return recs
+    sql = sqlalchemy.select(db_schema_class).order_by(order_by_column)
+    recs = (await session.execute(sql)).scalars().unique().all()
+    print(f'DB: get all {class_name} ordered by {order_by_column_name}:', recs)
+    return recs
 
 
-async def get_one_by_id(class_name, id_):
+async def get_one_by_id(session, class_name, id_):
     db_schema_class = getattr(db.schema, class_name)
-
-    async with db.session.get_session() as s:
-        sql = sqlalchemy.select(db_schema_class).where(db_schema_class.id == int(id_))
-        rec = (await s.execute(sql)).scalars().unique().first()
-        if rec is None:
-            raise Exception(f"DB: {class_name} with ID {id_} doesn't exist")
-        print(f'DB: {class_name} by ID={id_}:', rec)
-        return rec
+    sql = sqlalchemy.select(db_schema_class).where(db_schema_class.id == int(id_))
+    rec = (await session.execute(sql)).scalars().unique().first()
+    if rec is None:
+        raise Exception(f"DB: {class_name} with ID {id_} doesn't exist")
+    print(f'DB: {class_name} by ID={id_}:', rec)
+    return rec
 
 
-async def create_account(name, source, username, password):
+async def create_account(session, name, source, username, password):
     print(f'DB: create_account {name} {source}')
 
     # don't allow empty name
@@ -40,21 +37,19 @@ async def create_account(name, source, username, password):
     if source not in all_valid_sources:
         raise Exception(f"Invalid source '{source}'. Must be one of: {all_valid_sources}")
 
-    async with db.session.get_session() as s:
+    # Check if an account with this name already exists
+    await _test_doesnt_exist(session, "Account", "name", name)
 
-        # Check if an account with this name already exists
-        await _test_doesnt_exist(s, "Account", "name", name)
-
-        # add the account
-        c = crypto.Crypto()
-        rec = db.schema.Account(name=name,
-                                source=source,
-                                username=c.encrypt(username),
-                                password=c.encrypt(password))
-        s.add(rec)
-        await s.commit()
-        print(f'create_account created:', rec)
-        return rec
+    # add the account
+    c = crypto.Crypto()
+    rec = db.schema.Account(name=name,
+                            source=source,
+                            username=c.encrypt(username),
+                            password=c.encrypt(password))
+    session.add(rec)
+    await session.commit()
+    print(f'create_account created:', rec)
+    return rec
 
 
 async def create_category(name):
