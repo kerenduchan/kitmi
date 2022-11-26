@@ -32,7 +32,7 @@ class Account:
     @strawberry.field
     async def transactions(self, info: strawberry.types.Info) -> list["Transaction"]:
         transactions = await info.context["transactions_by_accounts_loader"].load(int(self.id))
-        return [Transaction.marshal(s) for t in transactions]
+        return [Transaction.marshal(t) for t in transactions]
 
 
 @strawberry.type
