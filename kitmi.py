@@ -1,7 +1,8 @@
 import sys
 import argparse
 import asyncio
-import db
+import db.create_db
+import db.ops
 import crypto
 
 
@@ -13,10 +14,10 @@ def get_parser():
     subparsers = parser.add_subparsers(dest='command')
 
     # create
-    subparsers.add_parser('create')
+    subparsers.add_parser('init')
 
     # add_account
-    add_account = subparsers.add_parser('add_account')
+    add_account = subparsers.add_parser('create_account')
     add_account.add_argument('-n', '--name', nargs=1)
     add_account.add_argument('-s', '--source', choices=['leumi', 'max'])
     add_account.add_argument('-u', '--username', nargs=1)
@@ -34,15 +35,12 @@ async def main():
     parser = get_parser()
     args = parser.parse_args(sys.argv[1:])
 
-    if args.command == 'create':
+    if args.command == 'init':
         crypto.Crypto.generate_key()
         await db.create_db.create_db()
 
-    elif args.command == 'add_account':
-        pass
-        # TODO
-#            await store.accounts.insert_one(
-#                db, args.name[0], args.source, args.username[0], args.password[0])
+    elif args.command == 'create_account':
+        await db.ops.create_account(args.name[0], args.source, args.username[0], args.password[0])
 
     elif args.command == 'sync':
         pass
