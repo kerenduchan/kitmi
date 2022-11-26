@@ -5,8 +5,6 @@ import db.schema
 
 
 async def create_db():
-    print('creating db')
-
     engine = sqlalchemy.ext.asyncio.create_async_engine(
         f'sqlite+aiosqlite:///{db.name.DB_FILENAME}'
     )
