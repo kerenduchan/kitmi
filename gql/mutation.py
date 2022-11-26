@@ -14,7 +14,7 @@ class Mutation:
     async def create_account(self, name: str, source: gql.schema.AccountSource,
                              username: str, password: str) \
             -> typing.Optional[gql.schema.Account]:
-        rec = await db.ops.create_account(name, str(source), username, password)
+        rec = await db.ops.create_account(name, source.value, username, password)
         return gql.schema.Account.marshal(rec)
 
     @strawberry.mutation
