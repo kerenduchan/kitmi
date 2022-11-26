@@ -5,6 +5,7 @@ import db.create_db
 import db.ops
 import crypto
 import db.session
+import do_sync
 
 
 def get_parser():
@@ -49,9 +50,8 @@ async def main():
                                         args.password[0])
 
     elif args.command == 'sync':
-        pass
-        # TODO
-#            await do_sync.do_sync(db, args.scraper[0])
+        async with db.session.get_session() as s:
+            await do_sync.do_sync(s, args.scraper[0])
 
 if __name__ == "__main__":
     asyncio.run(main())
