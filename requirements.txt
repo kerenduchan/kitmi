@@ -1,0 +1,6 @@
+asyncio
+aiosqlite
+sqlalchemy
+strawberry-graphql
+fastapi
+uvicorn

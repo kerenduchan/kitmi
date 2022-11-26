@@ -1,0 +1,45 @@
+import typing
+import datetime
+import strawberry.types
+import gql.schema
+import db.schema
+import db.session
+import db.ops
+
+
+@strawberry.type
+class Mutation:
+
+    @strawberry.mutation
+    async def create_account(self, name: str, source: gql.schema.AccountSource,
+                             username: str, password: str) \
+            -> typing.Optional[gql.schema.Account]:
+        rec = await db.ops.create_account(name, str(source), username, password)
+        return gql.schema.Account.marshal(rec)
+
+    @strawberry.mutation
+    async def create_category(self, name: str) \
+            -> typing.Optional[gql.schema.Category]:
+        rec = await db.ops.create_category(name)
+        return gql.schema.Category.marshal(rec)
+
+    @strawberry.mutation
+    async def create_subcategory(self, name: str, category_id: strawberry.ID) \
+            -> typing.Optional[gql.schema.Subcategory]:
+        rec = await db.ops.create_subcategory(name, category_id)
+        return gql.schema.Subcategory.marshal(rec)
+
+    @strawberry.mutation
+    async def create_payee(self, name: str, subcategory_id: typing.Optional[strawberry.ID]) \
+            -> typing.Optional[gql.schema.Payee]:
+        rec = await db.ops.create_payee(name, subcategory_id)
+        return gql.schema.Payee.marshal(rec)
+
+    @strawberry.mutation
+    async def create_transaction(self, date: datetime.date, amount: float,
+                                 account_id: strawberry.ID,
+                                 payee_id: strawberry.ID,
+                                 subcategory_id: typing.Optional[strawberry.ID]) \
+            -> gql.schema.Transaction:
+        rec = await db.ops.create_transaction(date, amount, account_id, payee_id, subcategory_id)
+        return gql.schema.Transaction.marshal(rec)
