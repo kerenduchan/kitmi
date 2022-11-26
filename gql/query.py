@@ -1,6 +1,5 @@
 import strawberry.types
 import typing
-import sqlalchemy
 import gql.schema
 import db.schema
 import db.session
