@@ -22,19 +22,22 @@ class Mutation:
     @strawberry.mutation
     async def create_category(self, name: str) \
             -> typing.Optional[gql.schema.Category]:
-        rec = await db.ops.create_category(name)
+        async with db.session.get_session() as s:
+            rec = await db.ops.create_category(s, name)
         return gql.schema.Category.marshal(rec)
 
     @strawberry.mutation
     async def create_subcategory(self, name: str, category_id: strawberry.ID) \
             -> typing.Optional[gql.schema.Subcategory]:
-        rec = await db.ops.create_subcategory(name, category_id)
+        async with db.session.get_session() as s:
+            rec = await db.ops.create_subcategory(s, name, category_id)
         return gql.schema.Subcategory.marshal(rec)
 
     @strawberry.mutation
     async def create_payee(self, name: str, subcategory_id: typing.Optional[strawberry.ID]) \
             -> typing.Optional[gql.schema.Payee]:
-        rec = await db.ops.create_payee(name, subcategory_id)
+        async with db.session.get_session() as s:
+            rec = await db.ops.create_payee(s, name, subcategory_id)
         return gql.schema.Payee.marshal(rec)
 
     @strawberry.mutation
@@ -43,5 +46,10 @@ class Mutation:
                                  payee_id: strawberry.ID,
                                  subcategory_id: typing.Optional[strawberry.ID]) \
             -> gql.schema.Transaction:
-        rec = await db.ops.create_transaction(date, amount, account_id, payee_id, subcategory_id)
+        async with db.session.get_session() as s:
+            rec = await db.ops.create_transaction(date,
+                                                  amount,
+                                                  account_id,
+                                                  payee_id,
+                                                  subcategory_id)
         return gql.schema.Transaction.marshal(rec)

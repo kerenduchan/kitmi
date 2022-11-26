@@ -52,98 +52,90 @@ async def create_account(session, name, source, username, password):
     return rec
 
 
-async def create_category(name):
+async def create_category(session, name):
     print(f'DB: create_category {name}')
 
     # don't allow empty name for category
     _test_not_empty(name, "Category name")
 
-    async with db.session.get_session() as s:
+    # Check if a category with this name already exists
+    await _test_doesnt_exist(s, "Category", "name", name)
 
-        # Check if a category with this name already exists
-        await _test_doesnt_exist(s, "Category", "name", name)
-
-        # add the category
-        rec = db.schema.Category(name=name)
-        s.add(rec)
-        await s.commit()
-        print(f'create_category created:', rec)
-        return rec
+    # add the category
+    rec = db.schema.Category(name=name)
+    session.add(rec)
+    await session.commit()
+    print(f'create_category created:', rec)
+    return rec
 
 
-async def create_subcategory(name, category_id):
+async def create_subcategory(session, name, category_id):
     print(f'DB: create_subcategory {name} {category_id}')
 
     # don't allow empty name
     _test_not_empty(name, "Subcategory name")
 
-    async with db.session.get_session() as s:
+    # Check if a subcategory with this name already exists
+    await _test_doesnt_exist(session, "Subcategory", "name", name)
 
-        # Check if a subcategory with this name already exists
-        await _test_doesnt_exist(s, "Subcategory", "name", name)
+    # Check if a category with this category_id exists
+    await _test_exists(session, "Category", "id", category_id)
 
-        # Check if a category with this category_id exists
-        await _test_exists(s, "Category", "id", category_id)
-
-        # add the subcategory
-        rec = db.schema.Subcategory(name=name, category_id=category_id)
-        s.add(rec)
-        await s.commit()
-        print(f'create_subcategory created:', rec)
-        return rec
+    # add the subcategory
+    rec = db.schema.Subcategory(name=name, category_id=category_id)
+    session.add(rec)
+    await session.commit()
+    print(f'create_subcategory created:', rec)
+    return rec
 
 
-async def create_payee(name, subcategory_id):
+async def create_payee(session, name, subcategory_id):
     print(f'DB: create_payee {name} {subcategory_id}')
 
     # don't allow empty name for payee
     _test_not_empty(name, "Payee name")
 
-    async with db.session.get_session() as s:
+    # Check if a payee with this name already exists
+    await _test_doesnt_exist(session, "Payee", "name", name)
 
-        # Check if a payee with this name already exists
-        await _test_doesnt_exist(s, "Payee", "name", name)
+    if subcategory_id is not None:
+        # Check if a subcategory with this subcategory_id exists
+        await _test_exists(session, "Subcategory", "id", subcategory_id)
 
-        if subcategory_id is not None:
-            # Check if a subcategory with this subcategory_id exists
-            await _test_exists(s, "Subcategory", "id", subcategory_id)
-
-        # add the payee
-        rec = db.schema.Payee(name=name, subcategory_id=subcategory_id)
-        s.add(rec)
-        await s.commit()
-        print(f'create_payee created:', rec)
-        return rec
+    # add the payee
+    rec = db.schema.Payee(name=name, subcategory_id=subcategory_id)
+    session.add(rec)
+    await session.commit()
+    print(f'create_payee created:', rec)
+    return rec
 
 
-async def create_transaction(date, amount, account_id, payee_id, subcategory_id):
+async def create_transaction(session, date, amount, account_id, payee_id, subcategory_id):
     print(f'DB: create_transaction {date} {amount} {account_id} {payee_id} {subcategory_id}')
 
     uid = str(uuid.uuid4())
 
-    async with db.session.get_session() as s:
+    # Check if an account with this account_id exists
+    await _test_exists(session, "Account", "id", account_id)
 
-        # Check if an account with this account_id exists
-        await _test_exists(s, "Account", "id", account_id)
+    # Check if a payee with this payee_id exists
+    await _test_exists(session, "Payee", "id", payee_id)
 
-        # Check if a payee with this payee_id exists
-        await _test_exists(s, "Payee", "id", payee_id)
+    if subcategory_id is not None:
+        # Check if a subcategory with this subcategory_id exists
+        await _test_exists(session, "Subcategory", "id", subcategory_id)
 
-        if subcategory_id is not None:
-            # Check if a subcategory with this subcategory_id exists
-            await _test_exists(s, "Subcategory", "id", subcategory_id)
-
-        # create the transaction
-        rec = db.schema.Transaction(id=uid,
-                                    date=date,
-                                    amount=amount,
-                                    account_id=account_id,
-                                    payee_id=payee_id,
-                                    subcategory_id=subcategory_id)
-        s.add(rec)
-        await s.commit()
-        print(f'create_transaction created:', rec)
-        return rec
+    # create the transaction
+    rec = db.schema.Transaction(id=uid,
+                                date=date,
+                                amount=amount,
+                                account_id=account_id,
+                                payee_id=payee_id,
+                                subcategory_id=subcategory_id)
+    session.add(rec)
+    await session.commit()
+    print(f'create_transaction created:', rec)
+    return rec
 
 
 def _test_not_empty(val, desc):
