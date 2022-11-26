@@ -2,6 +2,8 @@ import db.session
 import db.schema
 import sqlalchemy
 import uuid
+import crypto
+
 
 async def get_all(class_name, order_by_column_name):
     print(f"DB: get_all {class_name} order by {order_by_column_name}")
@@ -44,9 +46,11 @@ async def create_account(name, source, username, password):
         await _test_doesnt_exist(s, "Account", "name", name)
 
         # add the account
-        # TODO: encrypt username and password
-        # TODO: check an account with the same source + username + password doesn't exist
-        rec = db.schema.Account(name=name, source=source, username=username, password=password)
+        c = crypto.Crypto()
+        rec = db.schema.Account(name=name,
+                                source=source,
+                                username=c.encrypt(username),
+                                password=c.encrypt(password))
         s.add(rec)
         await s.commit()
         print(f'create_account created:', rec)
