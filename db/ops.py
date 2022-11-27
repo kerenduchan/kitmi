@@ -1,8 +1,10 @@
 import db.session
 import db.schema
 import sqlalchemy
+import sqlalchemy.orm
 import uuid
 import crypto
+import sqlalchemy.exc
 
 
 async def get_all(session, class_name, order_by_column_name):
@@ -16,14 +18,31 @@ async def get_all(session, class_name, order_by_column_name):
     return recs
 
 
-async def get_one_by_id(session, class_name, id_):
+async def get_one_by_column(session, class_name, column, value):
     db_schema_class = getattr(db.schema, class_name)
-    sql = sqlalchemy.select(db_schema_class).where(db_schema_class.id == int(id_))
+    column = getattr(db_schema_class, column)
+    sql = sqlalchemy.select(db_schema_class).where(column == value)
     rec = (await session.execute(sql)).scalars().unique().first()
     if rec is None:
-        raise Exception(f"DB: {class_name} with ID {id_} doesn't exist")
-    print(f'DB: {class_name} by ID={id_}:', rec)
+        raise Exception(f"DB: {class_name} with {column}={value} doesn't exist")
+    print(f'DB: {class_name} by {column}={value}:', rec)
     return rec
+
+
+async def get_one_by_id(session, class_name, id_):
+    return await get_one_by_column(session, class_name, 'id', int(id_))
+
+
+async def get_all_transaction_ids(session, account_id, start_date):
+    """ Get the IDs of all transactions from the db that belong
+    to the given account ID and are newer than the given date. """
+    sql = sqlalchemy.select(db.schema.Transaction.id)\
+        .where(db.schema.Transaction.account_id == account_id)
+    if start_date is not None:
+        sql = sql.where(db.schema.Transaction.date >= start_date)
+    recs = (await session.execute(sql)).scalars().unique().all()
+    print('get_all_transaction_ids', recs)
+    return recs
 
 
 async def create_account(session, name, source, username, password):
@@ -59,7 +78,7 @@ async def create_category(session, name):
     _test_not_empty(name, "Category name")
 
     # Check if a category with this name already exists
-    await _test_doesnt_exist(s, "Category", "name", name)
+    await _test_doesnt_exist(session, "Category", "name", name)
 
     # add the category
     rec = db.schema.Category(name=name)
@@ -136,6 +155,38 @@ async def create_transaction(session, date, amount, account_id, payee_id, subcat
     await session.commit()
     print(f'create_transaction created:', rec)
     return rec
+
+
+async def insert_only_new_payees(session, names):
+    """ Insert the given payee names into the payees table,
+    if they don't already exist.
+    Return a map of payee name => id, for each of the given names """
+
+    payees = {}
+    for name in names:
+        try:
+            payee = db.schema.Payee(name=name, subcategory_id=None)
+            session.add(payee)
+
+            # push the payee into the DB, so it'll get an id
+            await session.flush()
+
+            # refresh the payee in memory with its state in the db,
+            # so we now have its id
+            await session.refresh(payee)
+            payees[name] = payee.id
+            await session.commit()
+
+        except sqlalchemy.exc.IntegrityError as e:
+            # payee already exists in db - get its ID
+            await session.rollback()
+
+            if "UNIQUE constraint failed" in str(e):
+                # return id of existing record
+                payee = await get_one_by_column(session, "Payee", "name", name)
+                payees[name] = payee.id
+
+    return payees
 
 
 def _test_not_empty(val, desc):

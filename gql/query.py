@@ -7,14 +7,14 @@ import db.ops
 
 
 async def _begin_session_and_get_all(class_name, order_by_column_name):
-    async with db.session.get_session() as session:
+    async with db.session.SessionMaker() as session:
         recs = await db.ops.get_all(session, class_name, order_by_column_name)
     gql_schema_class = getattr(gql.schema, class_name)
     return [gql_schema_class.marshal(r) for r in recs]
 
 
 async def _begin_session_and_get_one_by_id(class_name, id_):
-    async with db.session.get_session() as session:
+    async with db.session.SessionMaker() as session:
         rec = await db.ops.get_one_by_id(session, class_name, id_)
     gql_schema_class = getattr(gql.schema, class_name)
     return gql_schema_class.marshal(rec)

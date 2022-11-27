@@ -53,7 +53,7 @@ async def get_transactions_by_payee_ids(ids):
 
 async def _get_objects_by_ids(db_schema_class_name, ids):
     class_ = getattr(db.schema, db_schema_class_name)
-    async with db.session.get_session() as s:
+    async with db.session.SessionMaker() as s:
         sql = sqlalchemy.select(class_).where(class_.id.in_(ids))
         recs = (await s.execute(sql)).scalars().unique().all()
 
@@ -68,7 +68,7 @@ async def _get_objects_by_ids(db_schema_class_name, ids):
 
 async def _get_objects_by_column_value(db_schema_class_name, column, values):
     class_ = getattr(db.schema, db_schema_class_name)
-    async with db.session.get_session() as s:
+    async with db.session.SessionMaker() as s:
         sql = sqlalchemy.select(class_).\
             where(getattr(class_, column).in_(values))
         recs = (await s.execute(sql)).scalars().unique().all()
