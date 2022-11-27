@@ -2,3 +2,4 @@ venv
 .idea
 kitmi.db
 key.txt
+scraper/node_modules
