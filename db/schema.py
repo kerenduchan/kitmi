@@ -11,9 +11,10 @@ class Account(Base):
     source = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     username = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     password = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    last_synced = sqlalchemy.Column(sqlalchemy.Date, nullable=True)
 
     def __repr__(self):
-        return f'id={self.id} name={self.name} source={self.source}'
+        return f'<Account id={self.id} name={self.name} source={self.source} last_synced={self.last_synced}>'
 
 
 class Category(Base):
@@ -22,7 +23,7 @@ class Category(Base):
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True)
 
     def __repr__(self):
-        return f'id={self.id} name={self.name}'
+        return f'<Category id={self.id} name={self.name}>'
 
 
 class Subcategory(Base):
@@ -33,7 +34,7 @@ class Subcategory(Base):
         sqlalchemy.Integer, sqlalchemy.ForeignKey(Category.id), nullable=False)
 
     def __repr__(self):
-        return f'id={self.id} name={self.name} category_id={self.category_id}'
+        return f'<Subcategory id={self.id} name={self.name} category_id={self.category_id}>'
 
 
 class Payee(Base):
@@ -44,7 +45,7 @@ class Payee(Base):
         sqlalchemy.Integer, sqlalchemy.ForeignKey(Subcategory.id), nullable=True)
 
     def __repr__(self):
-        return f'id={self.id} name={self.name} subcategory_id={self.subcategory_id}'
+        return f'<Payee id={self.id} name={self.name} subcategory_id={self.subcategory_id}>'
 
 
 class Transaction(Base):
@@ -60,7 +61,7 @@ class Transaction(Base):
         sqlalchemy.Integer, sqlalchemy.ForeignKey(Subcategory.id), nullable=True)
 
     def __repr__(self):
-        return f'id={self.id} date={self.date} amount={self.amount}' \
+        return f'<Transaction id={self.id} date={self.date} amount={self.amount}' \
                f'account_id={self.account_id} payee_id={self.payee_id}' \
-               f'subcategory_id={self.subcategory_id}'
+               f'subcategory_id={self.subcategory_id}>'
 
