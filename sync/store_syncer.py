@@ -22,7 +22,7 @@ class StoreSyncer:
             db.ops.get_all(self._session, "Payee", "id")
         )
 
-        logging.info(f'StoreSyncer loaded {len(accounts)} accounts and {len(payees)} payees')
+        logging.info(f'Loaded {len(accounts)} accounts and {len(payees)} payees')
 
         if logging.DEBUG >= logging.root.level:
             logging.debug(f'{len(accounts)} accounts:')

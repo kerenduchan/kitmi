@@ -10,13 +10,13 @@ import sqlalchemy.exc
 
 
 async def get_all(session, class_name, order_by_column_name):
-    print(f"DB: get_all {class_name} order by {order_by_column_name}")
+    logging.info(f"DB: get_all {class_name} ordered by {order_by_column_name}")
     db_schema_class = getattr(db.schema, class_name)
     order_by_column = getattr(db_schema_class, order_by_column_name)
 
     sql = sqlalchemy.select(db_schema_class).order_by(order_by_column)
     recs = (await session.execute(sql)).scalars().unique().all()
-    print(f'DB: get all {class_name} ordered by {order_by_column_name}:', recs)
+    logging.debug(f'DB: get all {class_name} ordered by {order_by_column_name}: {recs}')
     return recs
 
 
@@ -27,7 +27,7 @@ async def get_one_by_column(session, class_name, column, value):
     rec = (await session.execute(sql)).scalars().unique().first()
     if rec is None:
         raise Exception(f"DB: {class_name} with {column}={value} doesn't exist")
-    print(f'DB: {class_name} by {column}={value}:', rec)
+    logging.debug(f'DB: {class_name} by {column}={value}: {rec}')
     return rec
 
 
@@ -43,7 +43,7 @@ async def get_all_transaction_ids(session, account_id, start_date):
     if start_date is not None:
         sql = sql.where(db.schema.Transaction.date >= start_date)
     recs = (await session.execute(sql)).scalars().unique().all()
-    print('get_all_transaction_ids', recs)
+    logging.debug(f'get_all_transaction_ids: {recs}')
     return recs
 
 
@@ -71,12 +71,12 @@ async def create_account(session, name, source, username, password):
     session.add(rec)
     await session.commit()
 
-    logging.info(f'Account created: {rec}')
+    logging.debug(f'Account created: {rec}')
     return rec
 
 
 async def create_category(session, name):
-    print(f'DB: create_category {name}')
+    logging.info(f'DB: create_category {name}')
 
     # don't allow empty name for category
     _test_not_empty(name, "Category name")
@@ -88,12 +88,12 @@ async def create_category(session, name):
     rec = db.schema.Category(name=name)
     session.add(rec)
     await session.commit()
-    print(f'create_category created:', rec)
+    logging.debug(f'create_category created: {rec}')
     return rec
 
 
 async def create_subcategory(session, name, category_id):
-    print(f'DB: create_subcategory {name} {category_id}')
+    logging.info(f'DB: create_subcategory {name} {category_id}')
 
     # don't allow empty name
     _test_not_empty(name, "Subcategory name")
@@ -108,12 +108,12 @@ async def create_subcategory(session, name, category_id):
     rec = db.schema.Subcategory(name=name, category_id=category_id)
     session.add(rec)
     await session.commit()
-    print(f'create_subcategory created:', rec)
+    logging.debug(f'create_subcategory created: {rec}')
     return rec
 
 
 async def create_payee(session, name, subcategory_id):
-    print(f'DB: create_payee {name} {subcategory_id}')
+    logging.info(f'DB: create_payee {name} {subcategory_id}')
 
     # don't allow empty name for payee
     _test_not_empty(name, "Payee name")
@@ -129,12 +129,12 @@ async def create_payee(session, name, subcategory_id):
     rec = db.schema.Payee(name=name, subcategory_id=subcategory_id)
     session.add(rec)
     await session.commit()
-    print(f'create_payee created:', rec)
+    logging.debug(f'create_payee created: {rec}')
     return rec
 
 
 async def create_transaction(session, date, amount, account_id, payee_id, subcategory_id):
-    print(f'DB: create_transaction {date} {amount} {account_id} {payee_id} {subcategory_id}')
+    logging.info(f'DB: create_transaction {date} {amount} {account_id} {payee_id} {subcategory_id}')
 
     uid = str(uuid.uuid4())
 
@@ -157,7 +157,7 @@ async def create_transaction(session, date, amount, account_id, payee_id, subcat
                                 subcategory_id=subcategory_id)
     session.add(rec)
     await session.commit()
-    print(f'create_transaction created:', rec)
+    logging.debug(f'create_transaction created: {rec}')
     return rec
 
 

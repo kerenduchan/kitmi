@@ -61,7 +61,7 @@ class Transaction(Base):
         sqlalchemy.Integer, sqlalchemy.ForeignKey(Subcategory.id), nullable=True)
 
     def __repr__(self):
-        return f'<Transaction id={self.id} date={self.date} amount={self.amount}' \
-               f'account_id={self.account_id} payee_id={self.payee_id}' \
+        return f'<Transaction id={self.id} date={self.date} amount={self.amount} ' \
+               f'account_id={self.account_id} payee_id={self.payee_id} ' \
                f'subcategory_id={self.subcategory_id}>'
 

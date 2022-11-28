@@ -23,7 +23,10 @@ class StoreSyncerForOneAccount:
         # Load all transaction ids for this account newer than the start_date
         # (to avoid inserting duplicates)
 
-        logging.debug(f"{self._account.name}: Getting all transaction IDs for this account starting at {start_date}")
+        logging.debug(f"{self._account.name}: "
+                      f"Getting all stored transaction IDs for this account starting at "
+                      f"{start_date}")
+
         transaction_ids = await db.ops.get_all_transaction_ids(
             session, self._account.id, start_date)
 
@@ -50,14 +53,15 @@ class StoreSyncerForOneAccount:
             await self._store_transactions(session, transactions, self._payees)
 
         # update last_synced for the account
+        logging.info(f"{self._account.name}: Updating last_synced for this account: {end_date}")
+
         sql = sqlalchemy.update(db.schema.Account). \
             where(db.schema.Account.id == self._account.id).\
             values(last_synced=end_date)
         await session.execute(sql)
-
         await session.commit()
 
-        print(f"{self._account.name}: Stored {len(transactions)} transactions")
+        logging.info(f"{self._account.name}: Done. Stored {len(transactions)} transactions")
 
     async def _store_new_payees(self, session, transactions):
         """ Store any new payees from the given transactions """
@@ -72,23 +76,43 @@ class StoreSyncerForOneAccount:
 
         logging.info(f"{self._account.name}: Storing {count} new payees from transactions")
 
+        if logging.DEBUG >= logging.root.level:
+            for p in payee_names:
+                logging.debug(f'{p}')
+
         # insert payees that weren't already in the db
         await db.ops.create_payees_ignore_conflict(session, payee_names)
 
         # reload these payees from the db
+        logging.info(f"{self._account.name}: Reloading {count} payees from the db")
         sql = sqlalchemy.select(db.schema.Payee).where(db.schema.Payee.name.in_(payee_names))
         payees = (await session.execute(sql)).scalars().unique().all()
 
         # prepare a map of payee name to payee id
         payees = {p.name: p.id for p in payees}
 
+        if logging.DEBUG >= logging.root.level:
+            for name, id_ in payees.items():
+                logging.debug(f'{name}: id={id_}')
+
         # update the payees dict
+        count_before = len(self._payees)
         self._payees.update(payees)
+
+        logging.info(f"{self._account.name}: Added "
+                     f"{len(self._payees) - count_before} "
+                     f"payees to the payees cache")
+
+        if logging.DEBUG >= logging.root.level:
+            logging.info(f"{self._account.name}: The payees cache:")
+            for name, id_ in self._payees.items():
+                logging.debug(f'{name} => id_')
 
     async def _store_transactions(self, session, transactions, payees):
         """ Store the given transactions """
 
-        db_transactions = []
+        logging.info(f"{self._account.name}: Storing {len(transactions)} new transactions")
+
         for t in transactions:
             db_transaction = \
                 db.schema.Transaction(id=t.id,
@@ -98,6 +122,7 @@ class StoreSyncerForOneAccount:
                                       payee_id=payees[t.payee],
                                       subcategory_id=None)
             # TODO handle case where transaction with this ID is already in the db
+            logging.debug(f"{db_transaction}")
             session.add(db_transaction)
 
         await session.commit()
