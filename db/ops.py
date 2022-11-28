@@ -1,3 +1,4 @@
+import logging
 import db.session
 import db.schema
 import sqlalchemy
@@ -47,28 +48,33 @@ async def get_all_transaction_ids(session, account_id, start_date):
 
 
 async def create_account(session, name, source, username, password):
-    print(f'DB: create_account {name} {source}')
 
-    # don't allow empty name
-    _test_not_empty(name, "Account name")
+    logging.info(f'Creating account: name={name} source={source}')
 
-    # Check that source is valid
-    all_valid_sources = ['max', 'leumi']
-    if source not in all_valid_sources:
-        raise Exception(f"Invalid source '{source}'. Must be one of: {all_valid_sources}")
+    try:
+        # don't allow empty name
+        _test_not_empty(name, "Account name")
 
-    # Check if an account with this name already exists
-    await _test_doesnt_exist(session, "Account", "name", name)
+        # Check that source is valid
+        all_valid_sources = ['max', 'leumi']
+        if source not in all_valid_sources:
+            raise Exception(f"Invalid source '{source}'. Must be one of: {all_valid_sources}")
 
-    # add the account
-    c = crypto.Crypto()
-    rec = db.schema.Account(name=name,
-                            source=source,
-                            username=c.encrypt(username),
-                            password=c.encrypt(password))
-    session.add(rec)
-    await session.commit()
-    print(f'create_account created:', rec)
+        # Check if an account with this name already exists
+        await _test_doesnt_exist(session, "Account", "name", name)
+
+        # add the account
+        c = crypto.Crypto()
+        rec = db.schema.Account(name=name,
+                                source=source,
+                                username=c.encrypt(username),
+                                password=c.encrypt(password))
+        session.add(rec)
+        await session.commit()
+    except Exception as e:
+        logging.exception(str(e))
+
+    logging.info(f'Account created: {rec}')
     return rec
 
 

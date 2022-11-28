@@ -35,7 +35,7 @@ def get_parser():
 
 def init_logging():
     general_log_level = logging.DEBUG
-    db_log_level = logging.INFO
+    db_log_level = logging.WARN
 
     logging.basicConfig(filename='kitmi.log', filemode='w', level=general_log_level)
     logging.getLogger('sqlalchemy.engine').setLevel(db_log_level)
@@ -49,8 +49,11 @@ async def main():
     args = parser.parse_args(sys.argv[1:])
 
     if args.command == 'init':
+
         logging.info('Generating key')
         crypto.Crypto.generate_key()
+
+        logging.info('Creating database')
         async with db.session.engine.begin() as conn:
             await conn.run_sync(db.schema.Base.metadata.drop_all)
             await conn.run_sync(db.schema.Base.metadata.create_all)
