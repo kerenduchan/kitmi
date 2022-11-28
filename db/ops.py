@@ -73,6 +73,7 @@ async def create_account(session, name, source, username, password):
         await session.commit()
     except Exception as e:
         logging.exception(str(e))
+        raise e
 
     logging.info(f'Account created: {rec}')
     return rec
