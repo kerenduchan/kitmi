@@ -1,3 +1,4 @@
+import logging
 import asyncio
 import db.ops
 import db.session
@@ -15,10 +16,22 @@ class StoreSyncer:
         """ Sync the db for each of the given fetchers """
 
         # load all accounts and payees from db
+        logging.info('Loading accounts and payees from the db')
         (accounts, payees) = await asyncio.gather(
             db.ops.get_all(self._session, "Account", "id"),
             db.ops.get_all(self._session, "Payee", "id")
         )
+
+        logging.info(f'StoreSyncer loaded {len(accounts)} accounts and {len(payees)} payees')
+
+        if logging.DEBUG >= logging.root.level:
+            logging.debug(f'{len(accounts)} accounts:')
+            for a in accounts:
+                logging.debug(f'{a}')
+
+            logging.debug(f'{len(payees)} payees:')
+            for p in payees:
+                logging.debug(f'{p}')
 
         # prepare a map of account id to account
         accounts = {a.id: a for a in accounts}

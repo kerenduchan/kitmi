@@ -3,6 +3,7 @@ import db.session
 import db.ops
 import db.schema
 import sqlalchemy
+import logging
 
 
 class StoreSyncerForOneAccount:
@@ -21,22 +22,32 @@ class StoreSyncerForOneAccount:
 
         # Load all transaction ids for this account newer than the start_date
         # (to avoid inserting duplicates)
+
+        logging.debug(f"{self._account.name}: Getting all transaction IDs for this account starting at {start_date}")
         transaction_ids = await db.ops.get_all_transaction_ids(
             session, self._account.id, start_date)
 
+        logging.info(f'{self._account.name}: Loaded {len(transaction_ids)} transaction IDs')
+        if logging.DEBUG >= logging.root.level:
+            for id_ in transaction_ids:
+                logging.debug(f'{id_}')
+
         # Get the transactions for this account from the source
-        print(f"{self._account.name}: Fetching account data between {start_date} and {end_date}...")
+        logging.info(f"{self._account.name}: Fetching account data between {start_date} and {end_date}...")
         transactions = await self._fetcher.fetch(start_date, end_date)
-        print(f"{self._account.name}: Done fetching account data.")
+        count = len(transactions)
+        logging.info(f"{self._account.name}: Done fetching account data ({count} transactions).")
 
         # Filter out any transactions that have already been stored
         transactions = [t for t in transactions if t.id not in transaction_ids]
+        logging.info(f"{self._account.name}: {len(transactions)} out of {count} transactions haven't already been stored")
 
-        # Store any new payees that appear in the fetched transactions
-        await self._store_new_payees(session, transactions)
+        if len(transactions) > 0:
+            # Store any new payees that appear in the fetched transactions
+            await self._store_new_payees(session, transactions)
 
-        # Store the new transactions
-        await self._store_transactions(session, transactions, self._payees)
+            # Store the new transactions
+            await self._store_transactions(session, transactions, self._payees)
 
         # update last_synced for the account
         sql = sqlalchemy.update(db.schema.Account). \
@@ -54,6 +65,12 @@ class StoreSyncerForOneAccount:
         # Set of all payees from the given transactions
         # minus the payees in the existing payees dict
         payee_names = {t.payee for t in transactions if t.payee not in self._payees}
+        count = len(payee_names)
+        if count == 0:
+            logging.info(f"{self._account.name}: No new payees from transactions")
+            return
+
+        logging.info(f"{self._account.name}: Storing {count} new payees from transactions")
 
         # insert payees that weren't already in the db
         await db.ops.create_payees_ignore_conflict(session, payee_names)
