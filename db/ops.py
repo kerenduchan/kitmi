@@ -2,6 +2,7 @@ import db.session
 import db.schema
 import sqlalchemy
 import sqlalchemy.orm
+import sqlalchemy.dialects.sqlite
 import uuid
 import crypto
 import sqlalchemy.exc
@@ -157,36 +158,15 @@ async def create_transaction(session, date, amount, account_id, payee_id, subcat
     return rec
 
 
-async def insert_only_new_payees(session, names):
+async def create_payees_ignore_conflict(session, names):
     """ Insert the given payee names into the payees table,
-    if they don't already exist.
-    Return a map of payee name => id, for each of the given names """
+    if they don't already exist. """
 
-    payees = {}
-    for name in names:
-        try:
-            payee = db.schema.Payee(name=name, subcategory_id=None)
-            session.add(payee)
-
-            # push the payee into the DB, so it'll get an id
-            await session.flush()
-
-            # refresh the payee in memory with its state in the db,
-            # so we now have its id
-            await session.refresh(payee)
-            payees[name] = payee.id
-            await session.commit()
-
-        except sqlalchemy.exc.IntegrityError as e:
-            # payee already exists in db - get its ID
-            await session.rollback()
-
-            if "UNIQUE constraint failed" in str(e):
-                # return id of existing record
-                payee = await get_one_by_column(session, "Payee", "name", name)
-                payees[name] = payee.id
-
-    return payees
+    # INSERT INTO payees VALUES ... ON CONFLICT DO NOTHING
+    stmt = (sqlalchemy.dialects.sqlite.insert(db.schema.Payee)).on_conflict_do_nothing()
+    values = [{'name': n} for n in names]
+    await session.execute(stmt, values)
+    await session.commit()
 
 
 def _test_not_empty(val, desc):

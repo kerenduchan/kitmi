@@ -53,12 +53,19 @@ class StoreSyncerForOneAccount:
 
         # Set of all payees from the given transactions
         # minus the payees in the existing payees dict
-        payees = {t.payee for t in transactions if t.payee not in self._payees}
+        payee_names = {t.payee for t in transactions if t.payee not in self._payees}
 
-        # insert payees that weren't already in the db and get their ids
-        payees = await db.ops.insert_only_new_payees(session, payees)
+        # insert payees that weren't already in the db
+        await db.ops.create_payees_ignore_conflict(session, payee_names)
 
-        # update the payees dict with the ids of new payees
+        # reload these payees from the db
+        sql = sqlalchemy.select(db.schema.Payee).where(db.schema.Payee.name.in_(payee_names))
+        payees = (await session.execute(sql)).scalars().unique().all()
+
+        # prepare a map of payee name to payee id
+        payees = {p.name: p.id for p in payees}
+
+        # update the payees dict
         self._payees.update(payees)
 
     async def _store_transactions(self, session, transactions, payees):
