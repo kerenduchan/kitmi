@@ -43,34 +43,40 @@ def init_logging():
 
 
 async def main():
-    init_logging()
 
-    parser = get_parser()
-    args = parser.parse_args(sys.argv[1:])
+    try:
+        init_logging()
 
-    if args.command == 'init':
+        parser = get_parser()
+        args = parser.parse_args(sys.argv[1:])
 
-        logging.info('Generating key')
-        crypto.Crypto.generate_key()
+        if args.command == 'init':
 
-        logging.info('Creating database')
-        async with db.session.engine.begin() as conn:
-            await conn.run_sync(db.schema.Base.metadata.drop_all)
-            await conn.run_sync(db.schema.Base.metadata.create_all)
+            logging.info('Generating key')
+            crypto.Crypto.generate_key()
 
-        await db.session.engine.dispose()
+            logging.info('Creating database')
+            async with db.session.engine.begin() as conn:
+                await conn.run_sync(db.schema.Base.metadata.drop_all)
+                await conn.run_sync(db.schema.Base.metadata.create_all)
 
-    elif args.command == 'create_account':
-        async with db.session.SessionMaker() as s:
-            await db.ops.create_account(s,
-                                        args.name[0],
-                                        args.source,
-                                        args.username[0],
-                                        args.password[0])
+            await db.session.engine.dispose()
 
-    elif args.command == 'sync':
-        async with db.session.SessionMaker() as s:
-            await do_sync.do_sync(s, args.scraper[0])
+        elif args.command == 'create_account':
+            async with db.session.SessionMaker() as s:
+                await db.ops.create_account(s,
+                                            args.name[0],
+                                            args.source,
+                                            args.username[0],
+                                            args.password[0])
+
+        elif args.command == 'sync':
+            async with db.session.SessionMaker() as s:
+                await do_sync.do_sync(s, args.scraper[0])
+
+    except Exception as e:
+        logging.exception(str(e))
+        raise e
 
 if __name__ == "__main__":
     asyncio.run(main())

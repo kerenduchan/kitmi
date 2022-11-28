@@ -51,29 +51,25 @@ async def create_account(session, name, source, username, password):
 
     logging.info(f'Creating account: name={name} source={source}')
 
-    try:
-        # don't allow empty name
-        _test_not_empty(name, "Account name")
+    # don't allow empty name
+    _test_not_empty(name, "Account name")
 
-        # Check that source is valid
-        all_valid_sources = ['max', 'leumi']
-        if source not in all_valid_sources:
-            raise Exception(f"Invalid source '{source}'. Must be one of: {all_valid_sources}")
+    # Check that source is valid
+    all_valid_sources = ['max', 'leumi']
+    if source not in all_valid_sources:
+        raise Exception(f"Invalid source '{source}'. Must be one of: {all_valid_sources}")
 
-        # Check if an account with this name already exists
-        await _test_doesnt_exist(session, "Account", "name", name)
+    # Check if an account with this name already exists
+    await _test_doesnt_exist(session, "Account", "name", name)
 
-        # add the account
-        c = crypto.Crypto()
-        rec = db.schema.Account(name=name,
-                                source=source,
-                                username=c.encrypt(username),
-                                password=c.encrypt(password))
-        session.add(rec)
-        await session.commit()
-    except Exception as e:
-        logging.exception(str(e))
-        raise e
+    # add the account
+    c = crypto.Crypto()
+    rec = db.schema.Account(name=name,
+                            source=source,
+                            username=c.encrypt(username),
+                            password=c.encrypt(password))
+    session.add(rec)
+    await session.commit()
 
     logging.info(f'Account created: {rec}')
     return rec
