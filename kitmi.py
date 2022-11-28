@@ -1,10 +1,10 @@
 import sys
 import argparse
 import asyncio
-import db.create_db
 import db.ops
-import crypto
+import db.schema
 import db.session
+import crypto
 import do_sync
 
 
@@ -39,7 +39,11 @@ async def main():
 
     if args.command == 'init':
         crypto.Crypto.generate_key()
-        await db.create_db.create_db()
+        async with db.session.engine.begin() as conn:
+            await conn.run_sync(db.schema.Base.metadata.drop_all)
+            await conn.run_sync(db.schema.Base.metadata.create_all)
+
+        await db.session.engine.dispose()
 
     elif args.command == 'create_account':
         async with db.session.SessionMaker() as s:
