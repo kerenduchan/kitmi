@@ -5,8 +5,7 @@ import contextlib
 import typing
 
 engine = sqlalchemy.ext.asyncio.create_async_engine(
-    f'sqlite+aiosqlite:///{db.name.DB_FILENAME}', echo=True
-)
+    f'sqlite+aiosqlite:///{db.name.DB_FILENAME}')
 
 SessionMaker = sqlalchemy.orm.sessionmaker(
     bind=engine,

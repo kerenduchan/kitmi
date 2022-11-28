@@ -1,5 +1,6 @@
 import sys
 import argparse
+import logging
 import asyncio
 import db.ops
 import db.schema
@@ -32,12 +33,23 @@ def get_parser():
     return parser
 
 
+def init_logging():
+    general_log_level = logging.DEBUG
+    db_log_level = logging.INFO
+
+    logging.basicConfig(filename='kitmi.log', filemode='w', level=general_log_level)
+    logging.getLogger('sqlalchemy.engine').setLevel(db_log_level)
+    logging.getLogger('aiosqlite').setLevel(db_log_level)
+
+
 async def main():
+    init_logging()
 
     parser = get_parser()
     args = parser.parse_args(sys.argv[1:])
 
     if args.command == 'init':
+        logging.info('Generating key')
         crypto.Crypto.generate_key()
         async with db.session.engine.begin() as conn:
             await conn.run_sync(db.schema.Base.metadata.drop_all)
