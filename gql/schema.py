@@ -117,6 +117,7 @@ class Transaction:
     account_id: strawberry.ID
     payee_id: strawberry.ID
     subcategory_id: typing.Optional[strawberry.ID]
+    note: str
 
     @strawberry.field
     async def payee(self, info: strawberry.types.Info) -> "Payee":
@@ -143,5 +144,6 @@ class Transaction:
             amount=model.amount,
             account_id=model.account_id,
             payee_id=model.payee_id,
-            subcategory_id=model.subcategory_id
+            subcategory_id=model.subcategory_id,
+            note=model.note
         )

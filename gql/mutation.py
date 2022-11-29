@@ -46,7 +46,8 @@ class Mutation:
     async def create_transaction(self, date: datetime.date, amount: float,
                                  account_id: strawberry.ID,
                                  payee_id: strawberry.ID,
-                                 subcategory_id: typing.Optional[strawberry.ID]) \
+                                 subcategory_id: typing.Optional[strawberry.ID],
+                                 note: str) \
             -> gql.schema.Transaction:
         async with db.session.SessionMaker() as s:
             rec = await db.ops.create_transaction(s,
@@ -54,5 +55,6 @@ class Mutation:
                                                   amount,
                                                   account_id,
                                                   payee_id,
-                                                  subcategory_id)
+                                                  subcategory_id,
+                                                  note)
         return gql.schema.Transaction.marshal(rec)

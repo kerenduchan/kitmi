@@ -135,8 +135,9 @@ async def create_payee(session, name, subcategory_id, note):
     return rec
 
 
-async def create_transaction(session, date, amount, account_id, payee_id, subcategory_id):
-    logging.info(f'DB: create_transaction {date} {amount} {account_id} {payee_id} {subcategory_id}')
+async def create_transaction(session, date, amount, account_id, payee_id, subcategory_id, note):
+    logging.info(f'DB: create_transaction date={date} amount={amount} account_id={account_id} '
+                 f'payee_id={payee_id} subcategory_id={subcategory_id} note={note}')
 
     uid = str(uuid.uuid4())
 
@@ -156,7 +157,8 @@ async def create_transaction(session, date, amount, account_id, payee_id, subcat
                                 amount=amount,
                                 account_id=account_id,
                                 payee_id=payee_id,
-                                subcategory_id=subcategory_id)
+                                subcategory_id=subcategory_id,
+                                note=note)
     session.add(rec)
     await session.commit()
     logging.debug(f'create_transaction created: {rec}')

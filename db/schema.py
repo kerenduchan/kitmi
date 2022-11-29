@@ -67,7 +67,7 @@ class Transaction(Base):
         sqlalchemy.Integer, sqlalchemy.ForeignKey(Payee.id), nullable=False)
     subcategory_id = sqlalchemy.Column(
         sqlalchemy.Integer, sqlalchemy.ForeignKey(Subcategory.id), nullable=True)
-    note = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    note = sqlalchemy.Column(sqlalchemy.String, default="")
 
     def __repr__(self):
         return f'<Transaction id={self.id} date={self.date} amount={self.amount} ' \
