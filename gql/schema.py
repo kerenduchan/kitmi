@@ -85,6 +85,7 @@ class Payee:
     id: strawberry.ID
     name: str
     subcategory_id: typing.Optional[strawberry.ID]
+    note: str
 
     @strawberry.field
     async def subcategory(self, info: strawberry.types.Info) -> typing.Optional["Subcategory"]:
@@ -103,7 +104,8 @@ class Payee:
         return Payee(
             id=strawberry.ID(str(model.id)),
             name=model.name,
-            subcategory_id=model.subcategory_id
+            subcategory_id=model.subcategory_id,
+            note=model.note
         )
 
 

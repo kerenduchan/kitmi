@@ -112,8 +112,8 @@ async def create_subcategory(session, name, category_id):
     return rec
 
 
-async def create_payee(session, name, subcategory_id):
-    logging.info(f'DB: create_payee {name} {subcategory_id}')
+async def create_payee(session, name, subcategory_id, note):
+    logging.info(f'DB: create_payee name={name} subcategory_id={subcategory_id} note={note}')
 
     # don't allow empty name for payee
     _test_not_empty(name, "Payee name")
@@ -126,7 +126,9 @@ async def create_payee(session, name, subcategory_id):
         await _test_exists(session, "Subcategory", "id", subcategory_id)
 
     # add the payee
-    rec = db.schema.Payee(name=name, subcategory_id=subcategory_id)
+    rec = db.schema.Payee(name=name,
+                          subcategory_id=subcategory_id,
+                          note=note)
     session.add(rec)
     await session.commit()
     logging.debug(f'create_payee created: {rec}')

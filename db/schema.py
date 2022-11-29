@@ -49,9 +49,11 @@ class Payee(Base):
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True)
     subcategory_id = sqlalchemy.Column(
         sqlalchemy.Integer, sqlalchemy.ForeignKey(Subcategory.id), nullable=True)
+    note = sqlalchemy.Column(sqlalchemy.String, default="")
 
     def __repr__(self):
-        return f'<Payee id={self.id} name={self.name} subcategory_id={self.subcategory_id}>'
+        return f'<Payee id={self.id} name={self.name} ' \
+               f'subcategory_id={self.subcategory_id} note={self.note}>'
 
 
 class Transaction(Base):
@@ -65,8 +67,9 @@ class Transaction(Base):
         sqlalchemy.Integer, sqlalchemy.ForeignKey(Payee.id), nullable=False)
     subcategory_id = sqlalchemy.Column(
         sqlalchemy.Integer, sqlalchemy.ForeignKey(Subcategory.id), nullable=True)
+    note = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
     def __repr__(self):
         return f'<Transaction id={self.id} date={self.date} amount={self.amount} ' \
                f'account_id={self.account_id} payee_id={self.payee_id} ' \
-               f'subcategory_id={self.subcategory_id}>'
+               f'subcategory_id={self.subcategory_id} note={self.note}>'
