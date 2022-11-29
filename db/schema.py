@@ -1,14 +1,20 @@
-import sqlalchemy.orm
+import enum
+import sqlalchemy
 import sqlalchemy.ext.declarative
 
 Base = sqlalchemy.ext.declarative.declarative_base()
+
+
+class AccountSource(enum.Enum):
+    MAX = "max"
+    LEUMI = "leumi"
 
 
 class Account(Base):
     __tablename__ = "accounts"
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True)
-    source = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    source = sqlalchemy.Column(sqlalchemy.Enum(AccountSource), nullable=False)
     username = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     password = sqlalchemy.Column(sqlalchemy.String, nullable=False)
     last_synced = sqlalchemy.Column(sqlalchemy.Date, nullable=True)
@@ -21,7 +27,6 @@ class Category(Base):
     __tablename__ = "categories"
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True)
-
     def __repr__(self):
         return f'<Category id={self.id} name={self.name}>'
 
