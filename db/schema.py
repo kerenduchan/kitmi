@@ -5,8 +5,8 @@ Base = sqlalchemy.ext.declarative.declarative_base()
 
 
 class AccountSource(enum.Enum):
-    MAX = "max"
-    LEUMI = "leumi"
+    max = "max"
+    leumi = "leumi"
 
 
 class Account(Base):
