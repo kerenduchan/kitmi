@@ -20,10 +20,10 @@ class Mutation:
         return gql.schema.Account.marshal(rec)
 
     @strawberry.mutation
-    async def create_category(self, name: str) \
+    async def create_category(self, name: str, is_expense: bool) \
             -> typing.Optional[gql.schema.Category]:
         async with db.session.SessionMaker() as s:
-            rec = await db.ops.create_category(s, name)
+            rec = await db.ops.create_category(s, name, is_expense)
         return gql.schema.Category.marshal(rec)
 
     @strawberry.mutation

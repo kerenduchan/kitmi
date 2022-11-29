@@ -1,5 +1,4 @@
 import enum
-import sqlalchemy
 import sqlalchemy.ext.declarative
 
 Base = sqlalchemy.ext.declarative.declarative_base()
@@ -27,8 +26,10 @@ class Category(Base):
     __tablename__ = "categories"
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False, unique=True)
+    is_expense = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False)
+
     def __repr__(self):
-        return f'<Category id={self.id} name={self.name}>'
+        return f'<Category id={self.id} name={self.name} is_expense={self.is_expense}>'
 
 
 class Subcategory(Base):
@@ -69,4 +70,3 @@ class Transaction(Base):
         return f'<Transaction id={self.id} date={self.date} amount={self.amount} ' \
                f'account_id={self.account_id} payee_id={self.payee_id} ' \
                f'subcategory_id={self.subcategory_id}>'
-

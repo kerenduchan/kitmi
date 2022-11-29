@@ -39,6 +39,7 @@ class Account:
 class Category:
     id: strawberry.ID
     name: str
+    is_expense: bool
 
     @strawberry.field
     async def subcategories(self, info: strawberry.types.Info) -> list["Subcategory"]:
@@ -49,7 +50,8 @@ class Category:
     def marshal(model: db.schema.Category) -> "Category":
         return Category(
             id=strawberry.ID(str(model.id)),
-            name=model.name
+            name=model.name,
+            is_expense=model.is_expense
         )
 
 

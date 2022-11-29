@@ -75,8 +75,8 @@ async def create_account(session, name, source, username, password):
     return rec
 
 
-async def create_category(session, name):
-    logging.info(f'DB: create_category {name}')
+async def create_category(session, name, is_expense):
+    logging.info(f'DB: create_category {name} is_expense={is_expense}')
 
     # don't allow empty name for category
     _test_not_empty(name, "Category name")
@@ -85,7 +85,7 @@ async def create_category(session, name):
     await _test_doesnt_exist(session, "Category", "name", name)
 
     # add the category
-    rec = db.schema.Category(name=name)
+    rec = db.schema.Category(name=name, is_expense=is_expense)
     session.add(rec)
     await session.commit()
     logging.debug(f'create_category created: {rec}')
