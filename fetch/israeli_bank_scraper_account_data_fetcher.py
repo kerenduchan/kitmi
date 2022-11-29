@@ -45,7 +45,7 @@ class IsraeliBankScraperAccountDataFetcher(fetch.i_account_data_fetcher.IAccount
         cmd_and_params = [
             'node',
             self._scraper_script,
-            self._source,
+            self._source.value,
             str(start_date),
             self._username,
             self._password]
