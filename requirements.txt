@@ -1,7 +1,8 @@
-asyncio
+asyncio~=3.4.3
 aiosqlite
-sqlalchemy
+sqlalchemy~=1.4.44
 strawberry-graphql
-fastapi
+fastapi~=0.87.0
 uvicorn
-cryptography
+cryptography~=38.0.3
+starlette~=0.21.0
