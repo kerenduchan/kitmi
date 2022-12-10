@@ -92,6 +92,24 @@ async def create_category(session, name, is_expense):
     return rec
 
 
+async def rename_category(session, category_id, name):
+    logging.info(f'DB: rename_category {category_id} {name}')
+
+    # don't allow empty name
+    _test_not_empty(name, "Category name")
+
+    sql = sqlalchemy.update(db.schema.Category) \
+        .where(db.schema.Category.id == category_id) \
+        .values(name=name)
+
+    await session.execute(sql)
+    await session.commit()
+
+    rec = await get_one_by_id(session, "Category", category_id)
+    logging.debug(f'rename_category done: {rec}')
+    return rec
+
+
 async def create_subcategory(session, name, category_id):
     logging.info(f'DB: create_subcategory {name} {category_id}')
 
