@@ -130,6 +130,18 @@ async def rename_subcategory(session, subcategory_id, name):
     return rec
 
 
+async def delete_subcategory(session, subcategory_id):
+    logging.info(f'DB: delete_subcategory {subcategory_id}')
+
+    sql = sqlalchemy.delete(db.schema.Subcategory) \
+        .where(db.schema.Subcategory.id == subcategory_id)
+
+    await session.execute(sql)
+    await session.commit()
+
+    logging.debug(f'delete_subcategory done')
+
+
 async def create_payee(session, name, subcategory_id, note):
     logging.info(f'DB: create_payee name={name} subcategory_id={subcategory_id} note={note}')
 
