@@ -110,6 +110,18 @@ async def rename_category(session, category_id, name):
     return rec
 
 
+async def delete_category(session, category_id):
+    logging.info(f'DB: delete_category {category_id}')
+
+    sql = sqlalchemy.delete(db.schema.Category) \
+        .where(db.schema.Category.id == category_id)
+
+    await session.execute(sql)
+    await session.commit()
+
+    logging.debug(f'delete_category done')
+
+
 async def create_subcategory(session, name, category_id):
     logging.info(f'DB: create_subcategory {name} {category_id}')
 
