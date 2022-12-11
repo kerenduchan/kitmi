@@ -73,6 +73,18 @@ class Mutation:
         return gql.schema.Payee.marshal(rec)
 
     @strawberry.mutation
+    async def update_payee_subcategory(self, payee_id: strawberry.ID,
+                                       subcategory_id: strawberry.ID) \
+            -> typing.Optional[gql.schema.Payee]:
+        async with db.session.SessionMaker() as s:
+            rec = await db.ops.update_payee_subcategory(s,
+                                                        int(payee_id),
+                                                        int(subcategory_id))
+        if rec is None:
+            return None
+        return gql.schema.Payee.marshal(rec)
+
+    @strawberry.mutation
     async def create_transaction(self, date: datetime.date, amount: float,
                                  account_id: strawberry.ID,
                                  payee_id: strawberry.ID,

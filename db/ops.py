@@ -195,6 +195,25 @@ async def create_payee(session, name, subcategory_id, note):
     return rec
 
 
+async def update_payee_subcategory(session, payee_id, subcategory_id):
+    logging.info(f'DB: update_payee_subcategory payee_id={payee_id} '
+                 f'subcategory_id={subcategory_id}')
+
+    # Check if a subcategory with this subcategory_id exists
+    await _test_exists(session, "Subcategory", "id", subcategory_id)
+
+    sql = sqlalchemy.update(db.schema.Payee) \
+        .where(db.schema.Payee.id == payee_id) \
+        .values(subcategory_id=subcategory_id)
+
+    await session.execute(sql)
+    await session.commit()
+
+    rec = await get_one_by_id(session, "Payee", payee_id)
+    logging.debug(f'update_payee_subcategory done: {rec}')
+    return rec
+
+
 async def create_transaction(session, date, amount, account_id, payee_id, subcategory_id, note):
     logging.info(f'DB: create_transaction date={date} amount={amount} account_id={account_id} '
                  f'payee_id={payee_id} subcategory_id={subcategory_id} note={note}')
