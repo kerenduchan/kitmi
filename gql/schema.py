@@ -157,6 +157,16 @@ class YearlySummaryRow:
     monthly_sums: typing.List[int]
     total_sum: int
 
+    @strawberry.field
+    async def category(self, info: strawberry.types.Info) -> "Category":
+        category = await info.context["categories_loader"].load(int(self.category_id))
+        return Category.marshal(category)
+
+    @strawberry.field
+    async def subcategory(self, info: strawberry.types.Info) -> typing.Optional["Subcategory"]:
+        s = await info.context["subcategories_loader"].load(self.subcategory_id)
+        return Subcategory.marshal(s)
+
     @staticmethod
     def marshal(obj: model.summary.YearlySummaryRow) -> "YearlySummaryRow":
         return YearlySummaryRow(
