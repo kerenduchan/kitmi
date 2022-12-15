@@ -152,15 +152,9 @@ class Transaction:
 
 @strawberry.type
 class YearlySummaryRow:
-    category_id: strawberry.ID
     subcategory_id: strawberry.ID
-    monthly_sums: typing.List[int]
-    total_sum: int
-
-    @strawberry.field
-    async def category(self, info: strawberry.types.Info) -> "Category":
-        category = await info.context["categories_loader"].load(int(self.category_id))
-        return Category.marshal(category)
+    monthly_sums: typing.List[float]
+    total_sum: float
 
     @strawberry.field
     async def subcategory(self, info: strawberry.types.Info) -> typing.Optional["Subcategory"]:
@@ -170,7 +164,6 @@ class YearlySummaryRow:
     @staticmethod
     def marshal(obj: model.summary.YearlySummaryRow) -> "YearlySummaryRow":
         return YearlySummaryRow(
-            category_id=obj.category_id,
             subcategory_id=obj.subcategory_id,
             monthly_sums=obj.monthly_sums,
             total_sum=obj.total_sum
@@ -180,13 +173,11 @@ class YearlySummaryRow:
 @strawberry.type
 class YearlySummary:
     year: int
-    income_rows: typing.List[YearlySummaryRow]
-    expense_rows: typing.List[YearlySummaryRow]
+    rows: typing.List[YearlySummaryRow]
 
     @staticmethod
     def marshal(obj: model.summary.YearlySummary) -> "YearlySummary":
         return YearlySummary(
             year=obj.year,
-            income_rows=[YearlySummaryRow.marshal(r) for r in obj.income_rows],
-            expense_rows=[YearlySummaryRow.marshal(r) for r in obj.expense_rows]
+            rows=[YearlySummaryRow.marshal(row) for s_id, row in obj.rows.items()],
         )

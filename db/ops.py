@@ -286,21 +286,25 @@ async def _test_exists(session, class_name, column_name, val):
 
 
 async def get_yearly_summary(session, year):
-    summary = model.summary.YearlySummary(year)
 
     subcategories = await get_all(session, "Subcategory", "id")
     categories = await get_all(session, "Category", "id")
+    payees = await get_all(session, "Payee", "id")
 
-    # map category ID => is expense
-    category_id_to_is_expense = {c.id: c.is_expense for c in categories}
+    # get all transactions for this year
+    # (TODO: filter by year)
+    sql = sqlalchemy.select(db.schema.Transaction)
+    transactions = (await session.execute(sql)).scalars().unique().all()
 
-    # add an income/expense row for each subcategory
+    # Create the result yearly summary object.
+    summary = model.summary.YearlySummary(year)
+
+    # Add every subcategory to the summary
     for s in subcategories:
-        row = model.summary.YearlySummaryRow(s.category_id, s.id)
-        is_expense = category_id_to_is_expense[s.category_id]
-        if is_expense:
-            summary.expense_rows.append(row)
-        else:
-            summary.income_rows.append(row)
+        summary.add_subcategory(s.id)
+
+    # Sum the transaction in the appropriate subcategory and month.
+    # Payees are needed in order to determine the subcategory_id of the transaction.
+    summary.add_transactions(transactions, payees)
 
     return summary
