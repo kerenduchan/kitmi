@@ -43,7 +43,9 @@ class YearlySummary:
             return
 
         # add this transaction's amount to the sum for this subcategory
-        # TODO: in the correct month
-        subcategory_summary = self.rows[subcategory_id]
-        subcategory_summary.total_sum += transaction.amount
+        row = self.rows[subcategory_id]
+        row.total_sum += transaction.amount
+
+        month = transaction.date.month - 1
+        row.monthly_sums[month] += transaction.amount
 
