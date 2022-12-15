@@ -299,8 +299,8 @@ async def get_yearly_summary(session, year):
         row = model.summary.YearlySummaryRow(s.category_id, s.id)
         is_expense = category_id_to_is_expense[s.category_id]
         if is_expense:
-            summary.income_rows.append(row)
-        else:
             summary.expense_rows.append(row)
+        else:
+            summary.income_rows.append(row)
 
     return summary
