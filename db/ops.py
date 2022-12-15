@@ -9,6 +9,7 @@ import crypto
 import sqlalchemy.exc
 import model.summary
 
+
 async def get_all(session, class_name, order_by_column_name):
     logging.info(f"DB: get_all {class_name} ordered by {order_by_column_name}")
     db_schema_class = getattr(db.schema, class_name)
@@ -286,4 +287,20 @@ async def _test_exists(session, class_name, column_name, val):
 
 async def get_yearly_summary(session, year):
     summary = model.summary.YearlySummary(year)
+
+    subcategories = await get_all(session, "Subcategory", "id")
+    categories = await get_all(session, "Category", "id")
+
+    # map category ID => is expense
+    category_id_to_is_expense = {c.id: c.is_expense for c in categories}
+
+    # add an income/expense row for each subcategory
+    for s in subcategories:
+        row = model.summary.YearlySummaryRow(s.category_id, s.id)
+        is_expense = category_id_to_is_expense[s.category_id]
+        if is_expense:
+            summary.income_rows.append(row)
+        else:
+            summary.expense_rows.append(row)
+
     return summary

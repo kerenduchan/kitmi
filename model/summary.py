@@ -10,8 +10,8 @@ class YearlySummaryRow:
     def __init__(self, category_id, subcategory_id):
         self.category_id = category_id
         self.subcategory_id = subcategory_id
-        self.monthly_sums = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-        self.total_sum = 300
+        self.monthly_sums = [0 for i in range(12)]
+        self.total_sum = 0
 
 
 class YearlySummary:
@@ -21,5 +21,5 @@ class YearlySummary:
 
     def __init__(self, year):
         self.year = year
-        self.income_rows = [YearlySummaryRow(1, 1)]
-        self.expense_rows = [YearlySummaryRow(2, 2)]
+        self.income_rows = []
+        self.expense_rows = []
