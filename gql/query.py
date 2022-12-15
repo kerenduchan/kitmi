@@ -62,3 +62,9 @@ class Query:
     @strawberry.field
     async def transaction(self, id: strawberry.ID) -> typing.Optional[gql.schema.Transaction]:
         return await _begin_session_and_get_one_by_id("Transaction", id)
+
+    @strawberry.field
+    async def yearly_summary(self, year: int) -> typing.Optional[gql.schema.YearlySummary]:
+        async with db.session.SessionMaker() as session:
+            res = await db.ops.get_yearly_summary(session, year)
+        return gql.schema.YearlySummary.marshal(res)

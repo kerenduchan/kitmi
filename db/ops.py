@@ -7,7 +7,7 @@ import sqlalchemy.dialects.sqlite
 import uuid
 import crypto
 import sqlalchemy.exc
-
+import model.summary
 
 async def get_all(session, class_name, order_by_column_name):
     logging.info(f"DB: get_all {class_name} ordered by {order_by_column_name}")
@@ -282,3 +282,8 @@ async def _test_exists(session, class_name, column_name, val):
     existing = (await session.execute(sql)).first()
     if existing is None:
         raise Exception(f"{class_name} with {column_name}='{val}' does not exist.")
+
+
+async def get_yearly_summary(session, year):
+    summary = model.summary.YearlySummary(year)
+    return summary

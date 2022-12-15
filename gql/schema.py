@@ -5,6 +5,7 @@ import strawberry
 import strawberry.types
 import strawberry.fastapi
 import db.schema
+import model.summary
 
 
 @strawberry.enum
@@ -22,12 +23,12 @@ class Account:
     password: str
 
     @staticmethod
-    def marshal(model: db.schema.Account) -> "Account":
-        return Account(id=strawberry.ID(str(model.id)),
-                       name=model.name,
-                       source=model.source,
-                       username=model.username,
-                       password=model.password)
+    def marshal(obj: db.schema.Account) -> "Account":
+        return Account(id=strawberry.ID(str(obj.id)),
+                       name=obj.name,
+                       source=obj.source,
+                       username=obj.username,
+                       password=obj.password)
 
     @strawberry.field
     async def transactions(self, info: strawberry.types.Info) -> list["Transaction"]:
@@ -47,11 +48,11 @@ class Category:
         return [Subcategory.marshal(s) for s in subcategories]
 
     @staticmethod
-    def marshal(model: db.schema.Category) -> "Category":
+    def marshal(obj: db.schema.Category) -> "Category":
         return Category(
-            id=strawberry.ID(str(model.id)),
-            name=model.name,
-            is_expense=model.is_expense
+            id=strawberry.ID(str(obj.id)),
+            name=obj.name,
+            is_expense=obj.is_expense
         )
 
 
@@ -72,11 +73,11 @@ class Subcategory:
         return [Payee.marshal(p) for p in payees]
 
     @staticmethod
-    def marshal(model: db.schema.Subcategory) -> "Subcategory":
+    def marshal(obj: db.schema.Subcategory) -> "Subcategory":
         return Subcategory(
-            id=strawberry.ID(str(model.id)),
-            name=model.name,
-            category_id=model.category_id
+            id=strawberry.ID(str(obj.id)),
+            name=obj.name,
+            category_id=obj.category_id
         )
 
 
@@ -100,12 +101,12 @@ class Payee:
         return [Transaction.marshal(t) for t in transactions]
 
     @staticmethod
-    def marshal(model: db.schema.Payee) -> "Payee":
+    def marshal(obj: db.schema.Payee) -> "Payee":
         return Payee(
-            id=strawberry.ID(str(model.id)),
-            name=model.name,
-            subcategory_id=model.subcategory_id,
-            note=model.note
+            id=strawberry.ID(str(obj.id)),
+            name=obj.name,
+            subcategory_id=obj.subcategory_id,
+            note=obj.note
         )
 
 
@@ -137,13 +138,45 @@ class Transaction:
         return Subcategory.marshal(s)
 
     @staticmethod
-    def marshal(model: db.schema.Transaction) -> "Transaction":
+    def marshal(obj: db.schema.Transaction) -> "Transaction":
         return Transaction(
-            id=strawberry.ID(str(model.id)),
-            date=model.date,
-            amount=model.amount,
-            account_id=model.account_id,
-            payee_id=model.payee_id,
-            subcategory_id=model.subcategory_id,
-            note=model.note
+            id=strawberry.ID(str(obj.id)),
+            date=obj.date,
+            amount=obj.amount,
+            account_id=obj.account_id,
+            payee_id=obj.payee_id,
+            subcategory_id=obj.subcategory_id,
+            note=obj.note
+        )
+
+
+@strawberry.type
+class YearlySummaryRow:
+    category_id: strawberry.ID
+    subcategory_id: strawberry.ID
+    monthly_sums: typing.List[int]
+    total_sum: int
+
+    @staticmethod
+    def marshal(obj: model.summary.YearlySummaryRow) -> "YearlySummaryRow":
+        return YearlySummaryRow(
+            category_id=obj.category_id,
+            subcategory_id=obj.subcategory_id,
+            monthly_sums=obj.monthly_sums,
+            total_sum=obj.total_sum
+        )
+
+
+@strawberry.type
+class YearlySummary:
+    year: int
+    income_rows: typing.List[YearlySummaryRow]
+    expense_rows: typing.List[YearlySummaryRow]
+
+    @staticmethod
+    def marshal(obj: model.summary.YearlySummary) -> "YearlySummary":
+        return YearlySummary(
+            year=obj.year,
+            income_rows=[YearlySummaryRow.marshal(r) for r in obj.income_rows],
+            expense_rows=[YearlySummaryRow.marshal(r) for r in obj.expense_rows]
         )
