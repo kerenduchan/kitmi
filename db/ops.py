@@ -93,15 +93,15 @@ async def create_category(session, name, is_expense):
     return rec
 
 
-async def rename_category(session, category_id, name):
-    logging.info(f'DB: rename_category {category_id} {name}')
+async def update_category(session, category_id, name, is_expense):
+    logging.info(f'DB: update_category {category_id} {name} {is_expense}')
 
     # don't allow empty name
     _test_not_empty(name, "Category name")
 
     sql = sqlalchemy.update(db.schema.Category) \
         .where(db.schema.Category.id == category_id) \
-        .values(name=name)
+        .values(name=name, is_expense=is_expense)
 
     await session.execute(sql)
     await session.commit()

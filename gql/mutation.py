@@ -27,10 +27,10 @@ class Mutation:
         return gql.schema.Category.marshal(rec)
 
     @strawberry.mutation
-    async def rename_category(self, category_id: strawberry.ID, name: str) \
+    async def update_category(self, category_id: strawberry.ID, name: str, is_expense: bool) \
             -> typing.Optional[gql.schema.Category]:
         async with db.session.SessionMaker() as s:
-            rec = await db.ops.rename_category(s, int(category_id), name)
+            rec = await db.ops.update_category(s, int(category_id), name, is_expense)
         if rec is None:
             return None
         return gql.schema.Category.marshal(rec)
