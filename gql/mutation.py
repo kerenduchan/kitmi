@@ -49,10 +49,11 @@ class Mutation:
         return gql.schema.Subcategory.marshal(rec)
 
     @strawberry.mutation
-    async def rename_subcategory(self, subcategory_id: strawberry.ID, name: str) \
+    async def update_subcategory(self, subcategory_id: strawberry.ID,
+                                 name: str, category_id: strawberry.ID) \
             -> typing.Optional[gql.schema.Subcategory]:
         async with db.session.SessionMaker() as s:
-            rec = await db.ops.rename_subcategory(s, int(subcategory_id), name)
+            rec = await db.ops.update_subcategory(s, int(subcategory_id), name, category_id)
         if rec is None:
             return None
         return gql.schema.Subcategory.marshal(rec)
