@@ -126,7 +126,7 @@ async def delete_category(session, category_id):
     logging.debug(f'delete_category done')
 
 
-async def move_category(session, category_id, is_lower):
+async def move_category(session, category_id, is_down):
 
     # get all categories from the db
     sql = sqlalchemy.select(db.schema.Category).order_by(db.schema.Category.order)
@@ -142,17 +142,17 @@ async def move_category(session, category_id, is_lower):
     if category_idx == -1:
         raise Exception(f'Category with ID={category_id} does not exist')
 
-    # check whether there's any category above/below it (depending on is_lower)
-    if is_lower:
+    # check whether there's any category above/below it (depending on is_down)
+    if is_down:
         if category_idx == len(recs) - 1:
-            raise Exception(f'Category with ID={category_id} cannot be moved any lower')
+            raise Exception(f'Category with ID={category_id} cannot be moved any further down')
     elif category_idx == 0:
-        raise Exception(f'Category with ID={category_id} cannot be moved any higher')
+        raise Exception(f'Category with ID={category_id} cannot be moved any further up')
 
     # get the order of the category, and the category below/above it
-    # (according to the given is_lower)
+    # (according to the given is_down)
     current_order = recs[category_idx].order
-    swap_idx = category_idx + 1 if is_lower else category_idx - 1
+    swap_idx = category_idx + 1 if is_down else category_idx - 1
     new_order = recs[swap_idx].order
 
     # swap order values between this category and the one below/above it

@@ -42,13 +42,13 @@ class Mutation:
             rec = await db.ops.delete_category(s, int(category_id))
 
     @strawberry.mutation
-    async def move_category_lower(self, category_id: strawberry.ID) \
+    async def move_category_down(self, category_id: strawberry.ID) \
             -> None:
         async with db.session.SessionMaker() as s:
             await db.ops.move_category(s, int(category_id), True)
 
     @strawberry.mutation
-    async def move_category_higher(self, category_id: strawberry.ID) \
+    async def move_category_up(self, category_id: strawberry.ID) \
             -> None:
         async with db.session.SessionMaker() as s:
             await db.ops.move_category(s, int(category_id), False)
