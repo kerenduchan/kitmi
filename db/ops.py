@@ -166,8 +166,21 @@ async def delete_subcategory(session, subcategory_id):
 
     sql = sqlalchemy.delete(db.schema.Subcategory) \
         .where(db.schema.Subcategory.id == subcategory_id)
-
     await session.execute(sql)
+
+    # also delete any use of this subcategory ID in the payees and
+    # transactions tables
+
+    sql = sqlalchemy.update(db.schema.Payee) \
+        .where(db.schema.Payee.subcategory_id == subcategory_id) \
+        .values(subcategory_id=None)
+    await session.execute(sql)
+
+    sql = sqlalchemy.update(db.schema.Transaction) \
+        .where(db.schema.Transaction.subcategory_id == subcategory_id) \
+        .values(subcategory_id=None)
+    await session.execute(sql)
+
     await session.commit()
 
     logging.debug(f'delete_subcategory done')
