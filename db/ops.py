@@ -8,7 +8,7 @@ import uuid
 import crypto
 import sqlalchemy.exc
 import model.summary
-
+import model.subcategory_usage_info
 
 async def get_all(session, class_name, order_by_column_name):
     logging.info(f"DB: get_all {class_name} ordered by {order_by_column_name}")
@@ -321,3 +321,10 @@ async def get_yearly_summary(session, year):
     summary.add_transactions(transactions, payees)
 
     return summary
+
+
+async def get_subcategory_usage_info(session, subcategory_id):
+    res = model.subcategory_usage_info.SubcategoryUsageInfo()
+    res.transactionsCount = 2
+    res.payeesCount = 3
+    return res

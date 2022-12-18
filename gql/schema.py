@@ -6,6 +6,7 @@ import strawberry.types
 import strawberry.fastapi
 import db.schema
 import model.summary
+import model.subcategory_usage_info
 
 
 @strawberry.enum
@@ -180,4 +181,17 @@ class YearlySummary:
         return YearlySummary(
             year=obj.year,
             rows=[YearlySummaryRow.marshal(row) for s_id, row in obj.rows.items()],
+        )
+
+
+@strawberry.type
+class SubcategoryUsageInfo:
+    payeesCount: int
+    transactionsCount: int
+
+    @staticmethod
+    def marshal(obj: model.subcategory_usage_info.SubcategoryUsageInfo) -> "SubcategoryUsageInfo":
+        return SubcategoryUsageInfo(
+            payeesCount=obj.payeesCount,
+            transactionsCount=obj.transactionsCount
         )
