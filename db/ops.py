@@ -86,8 +86,10 @@ async def create_category(session, name, is_expense):
     # Check if a category with this name already exists
     await _test_doesnt_exist(session, "Category", "name", name)
 
+    order = await _get_last_category_order(session)
+
     # add the category
-    rec = db.schema.Category(name=name, is_expense=is_expense)
+    rec = db.schema.Category(name=name, is_expense=is_expense, order=order)
     session.add(rec)
     await session.commit()
     logging.debug(f'create_category created: {rec}')
@@ -297,6 +299,13 @@ async def _test_exists(session, class_name, column_name, val):
     existing = (await session.execute(sql)).first()
     if existing is None:
         raise Exception(f"{class_name} with {column_name}='{val}' does not exist.")
+
+
+async def _get_last_category_order(session):
+    categories = await get_all(session, "Category", "order")
+    if len(categories) == 0:
+        return 1
+    return categories[len(categories) - 1].order + 1
 
 
 async def get_yearly_summary(session, year):
