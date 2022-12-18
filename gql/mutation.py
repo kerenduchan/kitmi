@@ -45,7 +45,13 @@ class Mutation:
     async def move_category_lower(self, category_id: strawberry.ID) \
             -> None:
         async with db.session.SessionMaker() as s:
-            await db.ops.move_category_lower(s, int(category_id))
+            await db.ops.move_category(s, int(category_id), True)
+
+    @strawberry.mutation
+    async def move_category_higher(self, category_id: strawberry.ID) \
+            -> None:
+        async with db.session.SessionMaker() as s:
+            await db.ops.move_category(s, int(category_id), False)
 
     @strawberry.mutation
     async def create_subcategory(self, name: str, category_id: strawberry.ID) \

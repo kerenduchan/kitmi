@@ -126,31 +126,46 @@ async def delete_category(session, category_id):
     logging.debug(f'delete_category done')
 
 
-async def move_category_lower(session, category_id):
+async def move_category(session, category_id, is_lower):
+
+    # get all categories from the db
+    sql = sqlalchemy.select(db.schema.Category).order_by(db.schema.Category.order)
+    recs = (await session.execute(sql)).scalars().unique().all()
 
     # check that the category exists
-    rec = await get_one_by_id(session, "Category", category_id)
-    current_order = rec.order
+    category_idx = -1
+    for i in range(len(recs)):
+        if recs[i].id == category_id:
+            category_idx = i
+            break
 
-    # check if this category is already the largest
-    largest_order = await _get_largest_category_order(session)
+    if category_idx == -1:
+        raise Exception(f'Category with ID={category_id} does not exist')
 
-    if current_order == largest_order:
-        return
+    # check whether there's any category above/below it (depending on is_lower)
+    if is_lower:
+        if category_idx == len(recs) - 1:
+            raise Exception(f'Category with ID={category_id} cannot be moved any lower')
+    elif category_idx == 0:
+        raise Exception(f'Category with ID={category_id} cannot be moved any higher')
 
-    # swap order values between this category and the one below it
-    new_order = current_order + 1
+    # get the order of the category, and the category below/above it
+    # (according to the given is_lower)
+    current_order = recs[category_idx].order
+    swap_idx = category_idx + 1 if is_lower else category_idx - 1
+    new_order = recs[swap_idx].order
+
+    # swap order values between this category and the one below/above it
     sql = sqlalchemy.update(db.schema.Category) \
         .where(db.schema.Category.order == new_order) \
         .values(order=current_order)
-
     await session.execute(sql)
 
     sql = sqlalchemy.update(db.schema.Category) \
         .where(db.schema.Category.id == category_id) \
         .values(order=new_order)
-
     await session.execute(sql)
+
     await session.commit()
 
 
@@ -327,20 +342,6 @@ async def _test_exists(session, class_name, column_name, val):
     existing = (await session.execute(sql)).first()
     if existing is None:
         raise Exception(f"{class_name} with {column_name}='{val}' does not exist.")
-
-
-async def _get_largest_category_order(session):
-    categories = await get_all(session, "Category", "order")
-    if len(categories) == 0:
-        return 0
-    return categories[len(categories) - 1].order
-
-
-async def _get_smallest_category_order(session):
-    categories = await get_all(session, "Category", "order")
-    if len(categories) == 0:
-        return 0
-    return categories[0].order
 
 
 async def get_yearly_summary(session, year):
