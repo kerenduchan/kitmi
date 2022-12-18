@@ -29,7 +29,7 @@ class Query:
 
     @strawberry.field
     async def categories(self) -> typing.List[gql.schema.Category]:
-        return await _begin_session_and_get_all("Category", "name")
+        return await _begin_session_and_get_all("Category", "order")
 
     @strawberry.field
     async def subcategories(self) -> typing.List[gql.schema.Subcategory]:
