@@ -42,6 +42,12 @@ class Mutation:
             rec = await db.ops.delete_category(s, int(category_id))
 
     @strawberry.mutation
+    async def move_category_lower(self, category_id: strawberry.ID) \
+            -> None:
+        async with db.session.SessionMaker() as s:
+            await db.ops.move_category_lower(s, int(category_id))
+
+    @strawberry.mutation
     async def create_subcategory(self, name: str, category_id: strawberry.ID) \
             -> typing.Optional[gql.schema.Subcategory]:
         async with db.session.SessionMaker() as s:

@@ -86,7 +86,7 @@ async def create_category(session, name, is_expense):
     # Check if a category with this name already exists
     await _test_doesnt_exist(session, "Category", "name", name)
 
-    order = await _get_last_category_order(session)
+    order = await _get_largest_category_order(session) + 1
 
     # add the category
     rec = db.schema.Category(name=name, is_expense=is_expense, order=order)
@@ -124,6 +124,34 @@ async def delete_category(session, category_id):
     await session.commit()
 
     logging.debug(f'delete_category done')
+
+
+async def move_category_lower(session, category_id):
+
+    # check that the category exists
+    rec = await get_one_by_id(session, "Category", category_id)
+    current_order = rec.order
+
+    # check if this category is already the largest
+    largest_order = await _get_largest_category_order(session)
+
+    if current_order == largest_order:
+        return
+
+    # swap order values between this category and the one below it
+    new_order = current_order + 1
+    sql = sqlalchemy.update(db.schema.Category) \
+        .where(db.schema.Category.order == new_order) \
+        .values(order=current_order)
+
+    await session.execute(sql)
+
+    sql = sqlalchemy.update(db.schema.Category) \
+        .where(db.schema.Category.id == category_id) \
+        .values(order=new_order)
+
+    await session.execute(sql)
+    await session.commit()
 
 
 async def create_subcategory(session, name, category_id):
@@ -301,11 +329,18 @@ async def _test_exists(session, class_name, column_name, val):
         raise Exception(f"{class_name} with {column_name}='{val}' does not exist.")
 
 
-async def _get_last_category_order(session):
+async def _get_largest_category_order(session):
     categories = await get_all(session, "Category", "order")
     if len(categories) == 0:
-        return 1
-    return categories[len(categories) - 1].order + 1
+        return 0
+    return categories[len(categories) - 1].order
+
+
+async def _get_smallest_category_order(session):
+    categories = await get_all(session, "Category", "order")
+    if len(categories) == 0:
+        return 0
+    return categories[0].order
 
 
 async def get_yearly_summary(session, year):
