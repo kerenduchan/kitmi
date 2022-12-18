@@ -10,6 +10,7 @@ import sqlalchemy.exc
 import model.summary
 import model.subcategory_usage_info
 
+
 async def get_all(session, class_name, order_by_column_name):
     logging.info(f"DB: get_all {class_name} ordered by {order_by_column_name}")
     db_schema_class = getattr(db.schema, class_name)
@@ -27,7 +28,7 @@ async def get_one_by_column(session, class_name, column, value):
     sql = sqlalchemy.select(db_schema_class).where(column == value)
     rec = (await session.execute(sql)).scalars().unique().first()
     if rec is None:
-        raise Exception(f"DB: {class_name} with {column}={value} doesn't exist")
+        raise Exception(f"{class_name} with {column}={value} doesn't exist")
     logging.debug(f'DB: {class_name} by {column}={value}: {rec}')
     return rec
 
@@ -324,6 +325,21 @@ async def get_yearly_summary(session, year):
 
 
 async def get_subcategory_usage_info(session, subcategory_id):
+
+    # this will raise an exception if the subcategory doesn't exist
+    subcategory = await get_one_by_id(session, 'Subcategory', subcategory_id)
+
+    # count how many payees use this subcategory ID
+    sql = sqlalchemy.select([sqlalchemy.func.count()]).select_from(db.schema.Payee).\
+        where(db.schema.Payee.subcategory_id == subcategory_id)
+    count = (await session.execute(sql)).scalar()
+
+    if count == 0:
+        # count how many transactions use this subcategory ID
+        sql = sqlalchemy.select([sqlalchemy.func.count()]).select_from(db.schema.Transaction).\
+            where(db.schema.Transaction.subcategory_id == subcategory_id)
+        count = (await session.execute(sql)).scalar()
+
     res = model.subcategory_usage_info.SubcategoryUsageInfo()
-    res.is_used = True
+    res.is_used = (count > 0)
     return res
