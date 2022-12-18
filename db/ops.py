@@ -344,6 +344,13 @@ async def _test_exists(session, class_name, column_name, val):
         raise Exception(f"{class_name} with {column_name}='{val}' does not exist.")
 
 
+async def _get_largest_category_order(session):
+    categories = await get_all(session, "Category", "order")
+    if len(categories) == 0:
+        return 0
+    return categories[len(categories) - 1].order
+
+
 async def get_yearly_summary(session, year):
 
     subcategories = await get_all(session, "Subcategory", "id")
