@@ -325,6 +325,5 @@ async def get_yearly_summary(session, year):
 
 async def get_subcategory_usage_info(session, subcategory_id):
     res = model.subcategory_usage_info.SubcategoryUsageInfo()
-    res.transactionsCount = 2
-    res.payeesCount = 3
+    res.is_used = True
     return res

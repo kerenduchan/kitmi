@@ -1,3 +1,2 @@
 class SubcategoryUsageInfo:
-    payeesCount: int
-    transactionsCount: int
+    is_used: bool

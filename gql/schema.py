@@ -186,12 +186,10 @@ class YearlySummary:
 
 @strawberry.type
 class SubcategoryUsageInfo:
-    payeesCount: int
-    transactionsCount: int
+    is_used: bool
 
     @staticmethod
     def marshal(obj: model.subcategory_usage_info.SubcategoryUsageInfo) -> "SubcategoryUsageInfo":
         return SubcategoryUsageInfo(
-            payeesCount=obj.payeesCount,
-            transactionsCount=obj.transactionsCount
+            is_used=obj.is_used
         )
