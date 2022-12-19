@@ -34,7 +34,7 @@ async def get_one_by_column(session, class_name, column, value):
 
 
 async def get_one_by_id(session, class_name, id_):
-    return await get_one_by_column(session, class_name, 'id', int(id_))
+    return await get_one_by_column(session, class_name, 'id', id_)
 
 
 async def get_all_transaction_ids(session, account_id, start_date):
@@ -301,6 +301,25 @@ async def create_transaction(session, date, amount, account_id, payee_id, subcat
     session.add(rec)
     await session.commit()
     logging.debug(f'create_transaction created: {rec}')
+    return rec
+
+
+async def update_transaction_subcategory(session, transaction_id, subcategory_id):
+    logging.info(f'DB: update_transaction_subcategory transaction_id={transaction_id} '
+                 f'subcategory_id={subcategory_id}')
+
+    # Check if a subcategory with this subcategory_id exists
+    await _test_exists(session, "Subcategory", "id", subcategory_id)
+
+    sql = sqlalchemy.update(db.schema.Transaction) \
+        .where(db.schema.Transaction.id == transaction_id) \
+        .values(subcategory_id=subcategory_id)
+
+    await session.execute(sql)
+    await session.commit()
+
+    rec = await get_one_by_id(session, "Transaction", transaction_id)
+    logging.debug(f'update_transaction_subcategory done: {rec}')
     return rec
 
 
