@@ -308,8 +308,9 @@ async def update_transaction_subcategory(session, transaction_id, subcategory_id
     logging.info(f'DB: update_transaction_subcategory transaction_id={transaction_id} '
                  f'subcategory_id={subcategory_id}')
 
-    # Check if a subcategory with this subcategory_id exists
-    await _test_exists(session, "Subcategory", "id", subcategory_id)
+    if subcategory_id is not None:
+        # Check if a subcategory with this subcategory_id exists
+        await _test_exists(session, "Subcategory", "id", subcategory_id)
 
     sql = sqlalchemy.update(db.schema.Transaction) \
         .where(db.schema.Transaction.id == transaction_id) \
