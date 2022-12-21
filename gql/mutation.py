@@ -20,6 +20,15 @@ class Mutation:
         return gql.schema.Account.marshal(rec)
 
     @strawberry.mutation
+    async def update_account(self, account_id: strawberry.ID, name: str) \
+            -> typing.Optional[gql.schema.Account]:
+        async with db.session.SessionMaker() as s:
+            rec = await db.ops.update_account(s, int(account_id), name)
+        if rec is None:
+            return None
+        return gql.schema.Account.marshal(rec)
+
+    @strawberry.mutation
     async def create_category(self, name: str, is_expense: bool) \
             -> typing.Optional[gql.schema.Category]:
         async with db.session.SessionMaker() as s:

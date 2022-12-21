@@ -77,6 +77,24 @@ async def create_account(session, name, source, username, password):
     return rec
 
 
+async def update_account(session, account_id, name):
+    logging.info(f'DB: update_account {account_id} {name}')
+
+    # don't allow empty name
+    _test_not_empty(name, "Account name")
+
+    sql = sqlalchemy.update(db.schema.Account) \
+        .where(db.schema.Account.id == account_id) \
+        .values(name=name)
+
+    await session.execute(sql)
+    await session.commit()
+
+    rec = await get_one_by_id(session, "Account", account_id)
+    logging.debug(f'update_account done: {rec}')
+    return rec
+
+
 async def create_category(session, name, is_expense):
     logging.info(f'DB: create_category {name} is_expense={is_expense}')
 
