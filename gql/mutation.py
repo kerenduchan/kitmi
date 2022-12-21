@@ -29,6 +29,12 @@ class Mutation:
         return gql.schema.Account.marshal(rec)
 
     @strawberry.mutation
+    async def delete_account(self, account_id: strawberry.ID) \
+            -> None:
+        async with db.session.SessionMaker() as s:
+            rec = await db.ops.delete_account(s, int(account_id))
+
+    @strawberry.mutation
     async def create_category(self, name: str, is_expense: bool) \
             -> typing.Optional[gql.schema.Category]:
         async with db.session.SessionMaker() as s:

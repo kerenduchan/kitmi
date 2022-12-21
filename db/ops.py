@@ -92,6 +92,26 @@ async def update_account(session, account_id, name):
     return rec
 
 
+async def delete_account(session, account_id):
+    logging.info(f'DB: delete_account {account_id}')
+
+    # count how many transactions use this account ID
+    sql = sqlalchemy.select([sqlalchemy.func.count()]).select_from(db.schema.Transaction).\
+        where(db.schema.Transaction.account_id == account_id)
+    count = (await session.execute(sql)).scalar()
+    logging.info(f'count={count}')
+    if count > 0:
+        raise Exception('Cannot delete account that is used by one or more transactions')
+
+    sql = sqlalchemy.delete(db.schema.Account) \
+        .where(db.schema.Account.id == account_id)
+
+    await session.execute(sql)
+    await session.commit()
+
+    logging.debug(f'delete_account done')
+
+
 async def create_category(session, name, is_expense):
     logging.info(f'DB: create_category {name} is_expense={is_expense}')
 
