@@ -50,16 +50,13 @@ async def get_all_transaction_ids(session, account_id, start_date):
 
 
 async def create_account(session, name, source, username, password):
+    # get the enum member by value
+    source = db.schema.AccountSource(source)
 
     logging.info(f'Creating account: name={name} source={source}')
 
     # don't allow empty name
     _test_not_empty(name, "Account name")
-
-    # Check that source is valid
-    all_valid_sources = ['max', 'leumi']
-    if source not in all_valid_sources:
-        raise Exception(f"Invalid source '{source}'. Must be one of: {all_valid_sources}")
 
     # Check if an account with this name already exists
     await _test_doesnt_exist(session, "Account", "name", name)
