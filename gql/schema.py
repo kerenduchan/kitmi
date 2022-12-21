@@ -27,7 +27,7 @@ class Account:
     def marshal(obj: db.schema.Account) -> "Account":
         return Account(id=strawberry.ID(str(obj.id)),
                        name=obj.name,
-                       source=obj.source,
+                       source=obj.source.value,
                        username=obj.username,
                        password=obj.password)
 
