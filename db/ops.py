@@ -65,6 +65,16 @@ async def get_all_accounts(session):
     return recs
 
 
+async def get_account_by_id(session, id_):
+    rec = await get_one_by_column(session, "Account", 'id', id_)
+
+    # decrypt username and clear password
+    c = crypto.Crypto()
+    rec.username = c.decrypt(rec.username)
+    rec.password = ''
+    return rec
+
+
 async def create_account(session, name, source, username, password):
     # get the enum member by value
     source = db.schema.AccountSource(source)
@@ -93,22 +103,38 @@ async def create_account(session, name, source, username, password):
 async def update_account(session, account_id, name, source, username, password):
     logging.info(f'DB: update_account {account_id} {name} {source}')
 
-    # don't allow empty name
-    _test_not_empty(name, "Account name")
-
-    # update the account
     c = crypto.Crypto()
-    sql = sqlalchemy.update(db.schema.Account) \
-        .where(db.schema.Account.id == account_id) \
-        .values(name=name,
-                source=source,
-                username=c.encrypt(username),
-                password=c.encrypt(password))
+    values = {}
 
-    await session.execute(sql)
-    await session.commit()
+    if name is not None or \
+        source is not None or \
+        username is not None or \
+        password is not None:
 
-    rec = await get_one_by_id(session, "Account", account_id)
+        if name is not None:
+            # don't allow empty name
+            _test_not_empty(name, "Account name")
+
+            values['name'] = name
+
+        if source is not None:
+            values['source'] = source
+
+        if username is not None:
+            values['username'] = c.encrypt(username)
+
+        if password is not None:
+            values['password'] = c.encrypt(password)
+
+        # update the account
+        sql = sqlalchemy.update(db.schema.Account) \
+            .where(db.schema.Account.id == account_id) \
+            .values(**values)
+
+        await session.execute(sql)
+        await session.commit()
+
+    rec = await get_account_by_id(session, account_id)
     logging.debug(f'update_account done: {rec}')
     return rec
 
