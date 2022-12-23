@@ -20,10 +20,13 @@ class Mutation:
         return gql.schema.Account.marshal(rec)
 
     @strawberry.mutation
-    async def update_account(self, account_id: strawberry.ID, name: str) \
+    async def update_account(self, account_id: strawberry.ID,
+                             name: str, source: gql.schema.AccountSource,
+                             username: str, password: str) \
             -> typing.Optional[gql.schema.Account]:
         async with db.session.SessionMaker() as s:
-            rec = await db.ops.update_account(s, int(account_id), name)
+            rec = await db.ops.update_account(s, int(account_id),
+                                              name, source.value, username, password)
         if rec is None:
             return None
         return gql.schema.Account.marshal(rec)

@@ -25,6 +25,10 @@ class Query:
 
     @strawberry.field
     async def accounts(self) -> typing.List[gql.schema.Account]:
+        async with db.session.SessionMaker() as session:
+            recs = await db.ops.get_all_accounts(session)
+        return [gql.schema.Account.marshal(r) for r in recs]
+
         return await _begin_session_and_get_all("Account", "name")
 
     @strawberry.field

@@ -49,6 +49,22 @@ async def get_all_transaction_ids(session, account_id, start_date):
     return recs
 
 
+async def get_all_accounts(session):
+    logging.info(f"DB: get_all_accounts")
+    sql = sqlalchemy.select(db.schema.Account).order_by(db.schema.Account.name)
+    recs = (await session.execute(sql)).scalars().unique().all()
+
+    c = crypto.Crypto()
+
+    # decrypt username and clear password
+    for r in recs:
+        r.username = c.decrypt(r.username)
+        r.password = ''
+
+    logging.debug(f'DB: get_all_accounts: {recs}')
+    return recs
+
+
 async def create_account(session, name, source, username, password):
     # get the enum member by value
     source = db.schema.AccountSource(source)
@@ -74,15 +90,20 @@ async def create_account(session, name, source, username, password):
     return rec
 
 
-async def update_account(session, account_id, name):
-    logging.info(f'DB: update_account {account_id} {name}')
+async def update_account(session, account_id, name, source, username, password):
+    logging.info(f'DB: update_account {account_id} {name} {source}')
 
     # don't allow empty name
     _test_not_empty(name, "Account name")
 
+    # update the account
+    c = crypto.Crypto()
     sql = sqlalchemy.update(db.schema.Account) \
         .where(db.schema.Account.id == account_id) \
-        .values(name=name)
+        .values(name=name,
+                source=source,
+                username=c.encrypt(username),
+                password=c.encrypt(password))
 
     await session.execute(sql)
     await session.commit()
