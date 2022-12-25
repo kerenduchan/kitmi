@@ -481,9 +481,12 @@ async def get_yearly_summary(session, year):
 
 async def get_summary(session, group_by):
 
-    subcategories = await get_all(session, "Subcategory", "id")
-    categories = await get_all(session, "Category", "order")
-    payees = await get_all(session, "Payee", "id")
+    subcategories = await get_all(session, 'Subcategory', 'id')
+    categories = await get_all(session, 'Category', 'order')
+    payees = await get_all(session, 'Payee', 'id')
+
+    if group_by == 'subcategory':
+        subcategories = _order_subcategories_by_categories(subcategories, categories)
 
     # get all transactions (TODO: filter by start/end date)
     sql = sqlalchemy.select(db.schema.Transaction)
@@ -493,7 +496,7 @@ async def get_summary(session, group_by):
     summary = model.summary.Summary(group_by)
 
     # Add every subcategory/category to the summary
-    if group_by == "category":
+    if group_by == 'category':
         for c in categories:
             summary.add_group(c.id, c.name)
     else:
@@ -526,4 +529,17 @@ async def get_subcategory_usage_info(session, subcategory_id):
 
     res = model.subcategory_usage_info.SubcategoryUsageInfo()
     res.is_used = (count > 0)
+    return res
+
+
+def _order_subcategories_by_categories(subcategories, categories):
+    # order the subcategories by the categories' order
+    category_id_to_subcategories = {c.id: [] for c in categories}
+    for s in subcategories:
+        category_id_to_subcategories[s.category_id].append(s)
+
+    res = []
+    for c, subcategories in category_id_to_subcategories.items():
+        res += subcategories
+
     return res
