@@ -1,5 +1,5 @@
 import typing
-import enum
+import util
 
 
 # summary for one category or for one subcategory
@@ -8,10 +8,10 @@ class SummaryForOneGroup:
     monthly_sums: typing.List[int]
     total_sum: int
 
-    def __init__(self, group_id, group_name):
+    def __init__(self, group_id, group_name, months_count):
         self.group_id = group_id
         self.group_name = group_name
-        self.monthly_sums = [0 for i in range(12)]
+        self.monthly_sums = [0 for i in range(months_count)]
         self.total_sum = 0
 
 
@@ -20,13 +20,16 @@ class Summary:
     groups: typing.Dict[int, SummaryForOneGroup]
     x_axis: typing.List[str]
 
-    def __init__(self, group_by, payees, subcategories=None):
+    def __init__(self, start_date, end_date, group_by, payees, subcategories=None):
 
         # group_by should be "category" or "subcategory"
         self.group_by = group_by
 
         self.groups = {}
-        self.x_axis = ['02/2022', '03/2022', '04/2022', '05/2022', '06/2022']
+
+        self.x_axis = util.get_months(start_date, end_date)
+
+        self._month_to_idx = {month: idx for idx, month in enumerate(self.x_axis)}
 
         # Map of payee_id => subcategory_id
         self._payee_id_to_subcategory_id = {p.id: p.subcategory_id for p in payees}
@@ -39,7 +42,7 @@ class Summary:
                 {s.id: s.category_id for s in subcategories}
 
     def add_group(self, group_id, group_name):
-        self.groups[group_id] = SummaryForOneGroup(group_id, group_name)
+        self.groups[group_id] = SummaryForOneGroup(group_id, group_name, len(self.x_axis))
 
     # Add the given transactions to the summary (in the correct group)
     # subcategories are needed if grouping by category
@@ -71,6 +74,7 @@ class Summary:
         group = self.groups[group_id]
         group.total_sum += transaction.amount
 
-        month = transaction.date.month - 1
-        group.monthly_sums[month] += transaction.amount
+        month_and_year = transaction.date.strftime('%Y-%m')
+        idx = self._month_to_idx[month_and_year]
+        group.monthly_sums[idx] += transaction.amount
 

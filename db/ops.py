@@ -453,15 +453,21 @@ async def get_summary(session, group_by):
     categories = await get_all(session, 'Category', 'order')
     payees = await get_all(session, 'Payee', 'id')
 
+    start_date = '2022-03-01'
+    end_date = '2022-06-17'
+
     # get all transactions (TODO: filter by start/end date)
-    sql = sqlalchemy.select(db.schema.Transaction)
+    sql = sqlalchemy.select(db.schema.Transaction)\
+        .where(db.schema.Transaction.date >= start_date)\
+        .where(db.schema.Transaction.date <= end_date)
+
     transactions = (await session.execute(sql)).scalars().unique().all()
 
     if group_by == 'subcategory':
         subcategories = _order_subcategories_by_categories(subcategories, categories)
 
     # Create the result summary object.
-    summary = model.summary.Summary(group_by, payees, subcategories)
+    summary = model.summary.Summary(start_date, end_date, group_by, payees, subcategories)
 
     # Add every subcategory/category to the summary
     if group_by == 'category':
