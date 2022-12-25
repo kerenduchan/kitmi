@@ -453,15 +453,15 @@ async def get_summary(session, group_by):
     categories = await get_all(session, 'Category', 'order')
     payees = await get_all(session, 'Payee', 'id')
 
-    if group_by == 'subcategory':
-        subcategories = _order_subcategories_by_categories(subcategories, categories)
-
     # get all transactions (TODO: filter by start/end date)
     sql = sqlalchemy.select(db.schema.Transaction)
     transactions = (await session.execute(sql)).scalars().unique().all()
 
+    if group_by == 'subcategory':
+        subcategories = _order_subcategories_by_categories(subcategories, categories)
+
     # Create the result summary object.
-    summary = model.summary.Summary(group_by)
+    summary = model.summary.Summary(group_by, payees, subcategories)
 
     # Add every subcategory/category to the summary
     if group_by == 'category':
@@ -474,7 +474,7 @@ async def get_summary(session, group_by):
     # Sum the transaction in the appropriate group and month.
     # Payees are needed in order to determine the subcategory_id/category_id
     # of the transaction.
-    summary.add_transactions(transactions, payees, subcategories)
+    summary.add_transactions(transactions)
 
     return summary
 

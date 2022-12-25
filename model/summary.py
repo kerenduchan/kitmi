@@ -18,42 +18,44 @@ class SummaryForOneGroup:
 class Summary:
 
     groups: typing.Dict[int, SummaryForOneGroup]
+    x_axis: typing.List[str]
 
-    def __init__(self, group_by):
-        self.groups = {}
+    def __init__(self, group_by, payees, subcategories=None):
+
         # group_by should be "category" or "subcategory"
         self.group_by = group_by
+
+        self.groups = {}
+        self.x_axis = ['02/2022', '03/2022', '04/2022', '05/2022', '06/2022']
+
+        # Map of payee_id => subcategory_id
+        self._payee_id_to_subcategory_id = {p.id: p.subcategory_id for p in payees}
+
+        # Map of subcategory_id => category_id
+        # Needed only if grouping by category
+        self._subcategory_id_to_category_id = None
+        if self.group_by == "category":
+            subcategory_id_to_category_id = \
+                {s.id: s.category_id for s in subcategories}
 
     def add_group(self, group_id, group_name):
         self.groups[group_id] = SummaryForOneGroup(group_id, group_name)
 
     # Add the given transactions to the summary (in the correct group)
     # subcategories are needed if grouping by category
-    def add_transactions(self, transactions, payees, subcategories=None):
-
-        # Map of payee_id => subcategory_id
-        payee_id_to_subcategory_id = {p.id: p.subcategory_id for p in payees}
-
-        # Map of subcategory_id => category_id
-        # Needed only if grouping by category
-        subcategory_id_to_category_id = None
-        if self.group_by == "category":
-            subcategory_id_to_category_id = \
-                {s.id: s.category_id for s in subcategories}
+    def add_transactions(self, transactions):
 
         # Add each transaction to the summary (in the correct group)
         for t in transactions:
-            self._add_transaction(t, payee_id_to_subcategory_id,
-                                  subcategory_id_to_category_id)
+            self._add_transaction(t)
 
-    def _add_transaction(self, transaction, payee_id_to_subcategory_id,
-                         subcategory_id_to_category_id):
+    def _add_transaction(self, transaction):
 
         # Determine the subcategory of the transaction
         subcategory_id = transaction.subcategory_id
         if subcategory_id is None:
             # Fall back to the subcategory of this transaction's payee
-            subcategory_id = payee_id_to_subcategory_id[transaction.payee_id]
+            subcategory_id = self._payee_id_to_subcategory_id[transaction.payee_id]
 
         if subcategory_id is None:
             # This transaction is uncategorized.
@@ -63,7 +65,7 @@ class Summary:
         # Determine the group_id
         group_id = subcategory_id
         if self.group_by == "category":
-            group_id = subcategory_id_to_category_id[subcategory_id]
+            group_id = self._subcategory_id_to_category_id[subcategory_id]
 
         # Add this transaction's amount to the sum for this group
         group = self.groups[group_id]

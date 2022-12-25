@@ -206,11 +206,13 @@ class SummaryForOneGroup:
 
 @strawberry.type
 class Summary:
+    x_axis: typing.List[str]
     groups: typing.List[SummaryForOneGroup]
 
     @staticmethod
     def marshal(obj: model.summary.Summary) -> "Summary":
         return Summary(
+            x_axis=obj.x_axis,
             groups=[SummaryForOneGroup.marshal(g) for g_id, g in obj.groups.items()],
         )
 
