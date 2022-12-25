@@ -10,14 +10,9 @@ def is_in_range(json_dt, start_date, end_date):
     return start_date <= json_datetime_to_date(json_dt) <= end_date
 
 
-def get_month_and_year(date_str):
-    d = datetime.date.fromisoformat(date_str)
-    return d.month, d.year
-
-
-def get_months(start_date_str, end_date_str):
-    (start_month, start_year) = get_month_and_year(start_date_str)
-    (end_month, end_year) = get_month_and_year(end_date_str)
+def get_months(start_date, end_date):
+    (start_month, start_year) = (start_date.month, start_date.year)
+    (end_month, end_year) = (end_date.month, end_date.year)
 
     if start_year > end_year:
         return []

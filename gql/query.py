@@ -1,5 +1,6 @@
 import strawberry.types
 import typing
+import datetime
 import gql.schema
 import db.schema
 import db.session
@@ -74,9 +75,11 @@ class Query:
         return gql.schema.YearlySummary.marshal(res)
 
     @strawberry.field
-    async def summary(self, group_by: str) -> typing.Optional[gql.schema.Summary]:
+    async def summary(self, start_date: datetime.date,
+                      end_date: datetime.date, group_by: str)\
+            -> typing.Optional[gql.schema.Summary]:
         async with db.session.SessionMaker() as session:
-            res = await db.ops.get_summary(session, group_by)
+            res = await db.ops.get_summary(session, start_date, end_date, group_by)
         return gql.schema.Summary.marshal(res)
 
     @strawberry.field

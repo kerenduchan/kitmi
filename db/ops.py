@@ -447,16 +447,12 @@ async def get_yearly_summary(session, year):
     return summary
 
 
-async def get_summary(session, group_by):
-
+async def get_summary(session, start_date, end_date, group_by):
     subcategories = await get_all(session, 'Subcategory', 'id')
     categories = await get_all(session, 'Category', 'order')
     payees = await get_all(session, 'Payee', 'id')
 
-    start_date = '2022-03-01'
-    end_date = '2022-06-17'
-
-    # get all transactions (TODO: filter by start/end date)
+    # get all transactions between start and end date
     sql = sqlalchemy.select(db.schema.Transaction)\
         .where(db.schema.Transaction.date >= start_date)\
         .where(db.schema.Transaction.date <= end_date)
