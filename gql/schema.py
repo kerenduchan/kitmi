@@ -6,6 +6,7 @@ import strawberry.types
 import strawberry.fastapi
 import db.schema
 import model.yearly_summary
+import model.summary
 import model.subcategory_usage_info
 
 
@@ -183,6 +184,34 @@ class YearlySummary:
         return YearlySummary(
             year=obj.year,
             rows=[YearlySummaryRow.marshal(row) for s_id, row in obj.rows.items()],
+        )
+
+
+@strawberry.type
+class SummaryForOneGroup:
+    group_id: strawberry.ID
+    group_name: str
+    monthly_sums: typing.List[float]
+    total_sum: float
+
+    @staticmethod
+    def marshal(obj: model.summary.SummaryForOneGroup) -> "SummaryForOneGroup":
+        return SummaryForOneGroup(
+            group_id=obj.group_id,
+            group_name=obj.group_name,
+            monthly_sums=obj.monthly_sums,
+            total_sum=obj.total_sum
+        )
+
+
+@strawberry.type
+class Summary:
+    groups: typing.List[SummaryForOneGroup]
+
+    @staticmethod
+    def marshal(obj: model.summary.Summary) -> "Summary":
+        return Summary(
+            groups=[SummaryForOneGroup.marshal(g) for g_id, g in obj.groups.items()],
         )
 
 

@@ -74,6 +74,12 @@ class Query:
         return gql.schema.YearlySummary.marshal(res)
 
     @strawberry.field
+    async def summary(self, group_by: str) -> typing.Optional[gql.schema.Summary]:
+        async with db.session.SessionMaker() as session:
+            res = await db.ops.get_summary(session, group_by)
+        return gql.schema.Summary.marshal(res)
+
+    @strawberry.field
     async def subcategory_usage_info(self, subcategory_id: strawberry.ID) -> \
             typing.Optional[gql.schema.SubcategoryUsageInfo]:
         async with db.session.SessionMaker() as session:

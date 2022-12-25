@@ -8,6 +8,7 @@ import uuid
 import crypto
 import sqlalchemy.exc
 import model.yearly_summary
+import model.summary
 import model.subcategory_usage_info
 
 
@@ -474,6 +475,35 @@ async def get_yearly_summary(session, year):
     # Sum the transaction in the appropriate subcategory and month.
     # Payees are needed in order to determine the subcategory_id of the transaction.
     summary.add_transactions(transactions, payees)
+
+    return summary
+
+
+async def get_summary(session, group_by):
+
+    subcategories = await get_all(session, "Subcategory", "id")
+    categories = await get_all(session, "Category", "order")
+    payees = await get_all(session, "Payee", "id")
+
+    # get all transactions (TODO: filter by start/end date)
+    sql = sqlalchemy.select(db.schema.Transaction)
+    transactions = (await session.execute(sql)).scalars().unique().all()
+
+    # Create the result summary object.
+    summary = model.summary.Summary(group_by)
+
+    # Add every subcategory/category to the summary
+    if group_by == "category":
+        for c in categories:
+            summary.add_group(c.id, c.name)
+    else:
+        for s in subcategories:
+            summary.add_group(s.id, s.name)
+
+    # Sum the transaction in the appropriate group and month.
+    # Payees are needed in order to determine the subcategory_id/category_id
+    # of the transaction.
+    summary.add_transactions(transactions, payees, subcategories)
 
     return summary
 
