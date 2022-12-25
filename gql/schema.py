@@ -5,7 +5,7 @@ import strawberry
 import strawberry.types
 import strawberry.fastapi
 import db.schema
-import model.summary
+import model.yearly_summary
 import model.subcategory_usage_info
 
 
@@ -165,7 +165,7 @@ class YearlySummaryRow:
         return Subcategory.marshal(s)
 
     @staticmethod
-    def marshal(obj: model.summary.YearlySummaryRow) -> "YearlySummaryRow":
+    def marshal(obj: model.yearly_summary.YearlySummaryRow) -> "YearlySummaryRow":
         return YearlySummaryRow(
             subcategory_id=obj.subcategory_id,
             monthly_sums=obj.monthly_sums,
@@ -179,7 +179,7 @@ class YearlySummary:
     rows: typing.List[YearlySummaryRow]
 
     @staticmethod
-    def marshal(obj: model.summary.YearlySummary) -> "YearlySummary":
+    def marshal(obj: model.yearly_summary.YearlySummary) -> "YearlySummary":
         return YearlySummary(
             year=obj.year,
             rows=[YearlySummaryRow.marshal(row) for s_id, row in obj.rows.items()],

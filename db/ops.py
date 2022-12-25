@@ -7,7 +7,7 @@ import sqlalchemy.dialects.sqlite
 import uuid
 import crypto
 import sqlalchemy.exc
-import model.summary
+import model.yearly_summary
 import model.subcategory_usage_info
 
 
@@ -465,7 +465,7 @@ async def get_yearly_summary(session, year):
     transactions = (await session.execute(sql)).scalars().unique().all()
 
     # Create the result yearly summary object.
-    summary = model.summary.YearlySummary(year)
+    summary = model.yearly_summary.YearlySummary(year)
 
     # Add every subcategory to the summary
     for s in subcategories:
