@@ -422,38 +422,6 @@ async def create_payees_ignore_conflict(session, names):
     await session.commit()
 
 
-def _test_not_empty(val, desc):
-    if len(val) == 0:
-        raise Exception(f"Error: {desc} cannot be empty")
-
-
-async def _test_doesnt_exist(session, class_name, column_name, val):
-    class_ = getattr(db.schema, class_name)
-    column = getattr(class_, column_name)
-
-    sql = sqlalchemy.select(class_).where(column == val)
-    existing = (await session.execute(sql)).first()
-    if existing is not None:
-        raise Exception(f"{class_name} with {column_name}='{val}' already exists.")
-
-
-async def _test_exists(session, class_name, column_name, val):
-    class_ = getattr(db.schema, class_name)
-    column = getattr(class_, column_name)
-
-    sql = sqlalchemy.select(class_).where(column == val)
-    existing = (await session.execute(sql)).first()
-    if existing is None:
-        raise Exception(f"{class_name} with {column_name}='{val}' does not exist.")
-
-
-async def _get_largest_category_order(session):
-    categories = await get_all(session, "Category", "order")
-    if len(categories) == 0:
-        return 0
-    return categories[len(categories) - 1].order
-
-
 async def get_yearly_summary(session, year):
 
     subcategories = await get_all(session, "Subcategory", "id")
@@ -530,6 +498,38 @@ async def get_subcategory_usage_info(session, subcategory_id):
     res = model.subcategory_usage_info.SubcategoryUsageInfo()
     res.is_used = (count > 0)
     return res
+
+
+def _test_not_empty(val, desc):
+    if len(val) == 0:
+        raise Exception(f"Error: {desc} cannot be empty")
+
+
+async def _test_doesnt_exist(session, class_name, column_name, val):
+    class_ = getattr(db.schema, class_name)
+    column = getattr(class_, column_name)
+
+    sql = sqlalchemy.select(class_).where(column == val)
+    existing = (await session.execute(sql)).first()
+    if existing is not None:
+        raise Exception(f"{class_name} with {column_name}='{val}' already exists.")
+
+
+async def _test_exists(session, class_name, column_name, val):
+    class_ = getattr(db.schema, class_name)
+    column = getattr(class_, column_name)
+
+    sql = sqlalchemy.select(class_).where(column == val)
+    existing = (await session.execute(sql)).first()
+    if existing is None:
+        raise Exception(f"{class_name} with {column_name}='{val}' does not exist.")
+
+
+async def _get_largest_category_order(session):
+    categories = await get_all(session, "Category", "order")
+    if len(categories) == 0:
+        return 0
+    return categories[len(categories) - 1].order
 
 
 def _order_subcategories_by_categories(subcategories, categories):
