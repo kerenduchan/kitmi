@@ -19,6 +19,15 @@ class SummaryForOneGroup:
                 return False
         return True
 
+    def fix_precision(self):
+        for i in range(len(self.data)):
+            d = self.data[i]
+            self.data[i] = f'{d:.2f}'
+
+    def reverse_sign(self):
+        for i in range(len(self.data)):
+            self.data[i] = -self.data[i]
+
 
 class Summary:
 
@@ -45,7 +54,7 @@ class Summary:
         # Needed only if grouping by category
         self._subcategory_id_to_category_id = None
         if self.group_by == "category":
-            subcategory_id_to_category_id = \
+            self._subcategory_id_to_category_id = \
                 {s.id: s.category_id for s in subcategories}
 
     def add_group(self, group_id, group_name):
@@ -66,6 +75,15 @@ class Summary:
                 non_empty_groups[g_id] = g
 
         self.groups = non_empty_groups
+
+        # reverse signs
+        if self.is_reverse_sign:
+            for g_id, g in self.groups.items():
+                g.reverse_sign()
+
+        # fix precision
+        for g_id, g in self.groups.items():
+            g.fix_precision()
 
     def _add_transaction(self, transaction):
 
@@ -90,9 +108,4 @@ class Summary:
 
         month_and_year = transaction.date.strftime('%Y-%m')
         idx = self._month_to_idx[month_and_year]
-        amount = transaction.amount
-
-        if self.is_reverse_sign:
-            amount = -amount
-        group.data[idx] += amount
-
+        group.data[idx] += transaction.amount
