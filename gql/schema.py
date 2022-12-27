@@ -190,17 +190,15 @@ class YearlySummary:
 @strawberry.type
 class SummaryForOneGroup:
     group_id: strawberry.ID
-    group_name: str
-    monthly_sums: typing.List[float]
-    total_sum: float
+    name: str
+    data: typing.List[float]
 
     @staticmethod
     def marshal(obj: model.summary.SummaryForOneGroup) -> "SummaryForOneGroup":
         return SummaryForOneGroup(
             group_id=obj.group_id,
-            group_name=obj.group_name,
-            monthly_sums=obj.monthly_sums,
-            total_sum=obj.total_sum
+            name=obj.name,
+            data=obj.data,
         )
 
 

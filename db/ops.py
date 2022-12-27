@@ -447,7 +447,7 @@ async def get_yearly_summary(session, year):
     return summary
 
 
-async def get_summary(session, start_date, end_date, group_by):
+async def get_summary(session, start_date, end_date, group_by, is_reverse_sign):
     subcategories = await get_all(session, 'Subcategory', 'id')
     categories = await get_all(session, 'Category', 'order')
     payees = await get_all(session, 'Payee', 'id')
@@ -463,7 +463,7 @@ async def get_summary(session, start_date, end_date, group_by):
         subcategories = _order_subcategories_by_categories(subcategories, categories)
 
     # Create the result summary object.
-    summary = model.summary.Summary(start_date, end_date, group_by, payees, subcategories)
+    summary = model.summary.Summary(start_date, end_date, group_by, is_reverse_sign, payees, subcategories)
 
     # Add every subcategory/category to the summary
     if group_by == 'category':
