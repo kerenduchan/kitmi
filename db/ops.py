@@ -447,25 +447,32 @@ async def get_yearly_summary(session, year):
     return summary
 
 
-async def get_summary(session, start_date, end_date, group_by, is_reverse_sign):
+async def get_summary(session, start_date, end_date, group_by, is_expense=True):
+
     subcategories = await get_all(session, 'Subcategory', 'id')
-    categories = await get_all(session, 'Category', 'order')
+
+    # get all expense/income categories (depending on is_expense)
+    sql = sqlalchemy.select(db.schema.Category)\
+        .where(db.schema.Category.is_expense == is_expense)\
+        .order_by(db.schema.Category.order)
+    categories = (await session.execute(sql)).scalars().unique().all()
+
+    # get all payees (in order to determine the transactions' subcategories)
     payees = await get_all(session, 'Payee', 'id')
 
     # get all transactions between start and end date
     sql = sqlalchemy.select(db.schema.Transaction)\
         .where(db.schema.Transaction.date >= start_date)\
         .where(db.schema.Transaction.date <= end_date)
-
     transactions = (await session.execute(sql)).scalars().unique().all()
 
-    if group_by == 'subcategory':
-        subcategories = _order_subcategories_by_categories(subcategories, categories)
+    # only the subset of subcategories - expense/income
+    subcategories = _order_subcategories_by_categories(subcategories, categories)
 
     # Create the result summary object.
-    summary = model.summary.Summary(start_date, end_date, group_by, is_reverse_sign, payees, subcategories)
+    summary = model.summary.Summary(start_date, end_date, group_by, is_expense, payees, subcategories)
 
-    # Add every subcategory/category to the summary
+    # Add every (expense/income) subcategory/category to the summary
     if group_by == 'category':
         for c in categories:
             summary.add_group(c.id, c.name)
@@ -538,7 +545,9 @@ def _order_subcategories_by_categories(subcategories, categories):
     # order the subcategories by the categories' order
     category_id_to_subcategories = {c.id: [] for c in categories}
     for s in subcategories:
-        category_id_to_subcategories[s.category_id].append(s)
+        category = category_id_to_subcategories.get(s.category_id)
+        if category is not None:
+            category_id_to_subcategories[s.category_id].append(s)
 
     res = []
     for c, subcategories in category_id_to_subcategories.items():

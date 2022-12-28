@@ -34,7 +34,7 @@ class Summary:
     groups: typing.Dict[int, SummaryForOneGroup]
     x_axis: typing.List[str]
 
-    def __init__(self, start_date, end_date, group_by, is_reverse_sign, payees, subcategories=None):
+    def __init__(self, start_date, end_date, group_by, is_reverse_sign, payees, subcategories):
 
         # group_by should be "category" or "subcategory"
         self.group_by = group_by
@@ -53,9 +53,9 @@ class Summary:
         # Map of subcategory_id => category_id
         # Needed only if grouping by category
         self._subcategory_id_to_category_id = None
-        if self.group_by == "category":
-            self._subcategory_id_to_category_id = \
-                {s.id: s.category_id for s in subcategories}
+
+        self._subcategory_id_to_category_id = \
+            {s.id: s.category_id for s in subcategories}
 
     def add_group(self, group_id, group_name):
         self.groups[group_id] = SummaryForOneGroup(group_id, group_name, len(self.x_axis))
@@ -98,10 +98,14 @@ class Summary:
             # It won't appear in the summary.
             return
 
+        category_id = self._subcategory_id_to_category_id.get(subcategory_id)
+        if category_id is None:
+            # The subcategory of this transaction doesn't appear in the given
+            # subcategories list. It won't appear in the summary.
+            return
+
         # Determine the group_id
-        group_id = subcategory_id
-        if self.group_by == "category":
-            group_id = self._subcategory_id_to_category_id[subcategory_id]
+        group_id = category_id if (self.group_by == "category") else subcategory_id
 
         # Add this transaction's amount to the sum for this group
         group = self.groups[group_id]

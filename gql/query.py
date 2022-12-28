@@ -76,10 +76,10 @@ class Query:
 
     @strawberry.field
     async def summary(self, start_date: datetime.date,
-                      end_date: datetime.date, group_by: str, is_reverse_sign: bool=True)\
+                      end_date: datetime.date, group_by: str, is_expense: bool=True)\
             -> typing.Optional[gql.schema.Summary]:
         async with db.session.SessionMaker() as session:
-            res = await db.ops.get_summary(session, start_date, end_date, group_by, is_reverse_sign)
+            res = await db.ops.get_summary(session, start_date, end_date, group_by, is_expense)
         return gql.schema.Summary.marshal(res)
 
     @strawberry.field
