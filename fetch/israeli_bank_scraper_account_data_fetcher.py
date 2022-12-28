@@ -13,7 +13,7 @@ class Transaction:
 
     def __init__(self, rec):
         self.id = hashlib.sha1(repr(rec).encode('utf-8')).hexdigest()
-        self.date = util.json_datetime_to_date(rec['date'])
+        self.date = rec['date']
         self.payee = rec['description']
         self.amount = rec['chargedAmount']
 
@@ -63,9 +63,14 @@ class IsraeliBankScraperAccountDataFetcher(fetch.i_account_data_fetcher.IAccount
         # load the transactions from json
         data = json.loads(stdout.decode())
 
+        # fix the date (add 1 day)
+        for rec in data:
+            wrong_date = datetime.date.fromisoformat(rec['date'][:10])
+            rec['date'] = wrong_date + datetime.timedelta(1)
+
         # filter the desired date range
         data = [rec for rec in data
-                if (util.is_in_range(rec['date'], start_date, end_date))]
+                if start_date <= rec['date'] <= end_date]
 
         # create a list of Transaction instances from the fetched data
         transactions = [Transaction(rec) for rec in data]
