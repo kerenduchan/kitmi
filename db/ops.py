@@ -338,8 +338,8 @@ async def create_payee(session, name, subcategory_id, note):
     return rec
 
 
-async def update_payee_subcategory(session, payee_id, subcategory_id):
-    logging.info(f'DB: update_payee_subcategory payee_id={payee_id} '
+async def update_payee(session, payee_id, subcategory_id):
+    logging.info(f'DB: update_payee payee_id={payee_id} '
                  f'subcategory_id={subcategory_id}')
 
     # Check if a subcategory with this subcategory_id exists
@@ -353,7 +353,7 @@ async def update_payee_subcategory(session, payee_id, subcategory_id):
     await session.commit()
 
     rec = await get_one_by_id(session, "Payee", payee_id)
-    logging.debug(f'update_payee_subcategory done: {rec}')
+    logging.debug(f'update_payee done: {rec}')
     return rec
 
 
