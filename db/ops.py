@@ -395,8 +395,8 @@ async def create_transaction(session, date, amount, account_id, payee_id, subcat
     return rec
 
 
-async def update_transaction_subcategory(session, transaction_id, subcategory_id):
-    logging.info(f'DB: update_transaction_subcategory transaction_id={transaction_id} '
+async def update_transaction(session, transaction_id, subcategory_id):
+    logging.info(f'DB: update_transaction transaction_id={transaction_id} '
                  f'subcategory_id={subcategory_id}')
 
     if subcategory_id is not None:
@@ -411,7 +411,7 @@ async def update_transaction_subcategory(session, transaction_id, subcategory_id
     await session.commit()
 
     rec = await get_one_by_id(session, "Transaction", transaction_id)
-    logging.debug(f'update_transaction_subcategory done: {rec}')
+    logging.debug(f'update_transaction done: {rec}')
     return rec
 
 

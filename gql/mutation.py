@@ -137,15 +137,14 @@ class Mutation:
         return gql.schema.Transaction.marshal(rec)
 
     @strawberry.mutation
-    async def update_transaction_subcategory(self, transaction_id: strawberry.ID,
-                                             subcategory_id: typing.Optional[strawberry.ID]) \
+    async def update_transaction(self, transaction_id: strawberry.ID,
+                                 subcategory_id: typing.Optional[strawberry.ID]) \
             -> typing.Optional[gql.schema.Transaction]:
         async with db.session.SessionMaker() as s:
             if subcategory_id is not None:
                 subcategory_id = int(subcategory_id)
-            rec = await db.ops.update_transaction_subcategory(s,
-                                                              transaction_id,
-                                                              subcategory_id)
+            rec = await db.ops.update_transaction(s, transaction_id,
+                                                  subcategory_id)
         if rec is None:
             return None
         return gql.schema.Transaction.marshal(rec)
