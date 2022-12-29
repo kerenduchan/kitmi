@@ -91,6 +91,7 @@ class Payee:
     name: str
     subcategory_id: typing.Optional[strawberry.ID]
     note: str
+    ignore: bool
 
     @strawberry.field
     async def subcategory(self, info: strawberry.types.Info) -> typing.Optional["Subcategory"]:
@@ -110,7 +111,8 @@ class Payee:
             id=strawberry.ID(str(obj.id)),
             name=obj.name,
             subcategory_id=obj.subcategory_id,
-            note=obj.note
+            note=obj.note,
+            ignore=obj.ignore
         )
 
 
@@ -123,6 +125,7 @@ class Transaction:
     payee_id: strawberry.ID
     subcategory_id: typing.Optional[strawberry.ID]
     note: str
+    ignore: bool
 
     @strawberry.field
     async def payee(self, info: strawberry.types.Info) -> "Payee":
@@ -150,7 +153,8 @@ class Transaction:
             account_id=obj.account_id,
             payee_id=obj.payee_id,
             subcategory_id=obj.subcategory_id,
-            note=obj.note
+            note=obj.note,
+            ignore=obj.ignore
         )
 
 
