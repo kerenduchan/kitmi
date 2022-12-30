@@ -395,7 +395,7 @@ async def create_transaction(session, date, amount, account_id, payee_id, subcat
     return rec
 
 
-async def update_transaction(session, transaction_id, subcategory_id):
+async def update_transaction(session, transaction_id, override_subcategory, subcategory_id):
     logging.info(f'DB: update_transaction transaction_id={transaction_id} '
                  f'subcategory_id={subcategory_id}')
 
@@ -403,9 +403,14 @@ async def update_transaction(session, transaction_id, subcategory_id):
         # Check if a subcategory with this subcategory_id exists
         await _test_exists(session, "Subcategory", "id", subcategory_id)
 
+    values = {'subcategory_id': subcategory_id}
+
+    if override_subcategory is not None:
+        values['override_subcategory'] = override_subcategory
+
     sql = sqlalchemy.update(db.schema.Transaction) \
         .where(db.schema.Transaction.id == transaction_id) \
-        .values(subcategory_id=subcategory_id)
+        .values(**values)
 
     await session.execute(sql)
     await session.commit()

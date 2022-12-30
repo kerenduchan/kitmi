@@ -123,6 +123,7 @@ class Transaction:
     amount: float
     account_id: strawberry.ID
     payee_id: strawberry.ID
+    override_subcategory: bool
     subcategory_id: typing.Optional[strawberry.ID]
     note: str
 
@@ -151,6 +152,7 @@ class Transaction:
             amount=obj.amount,
             account_id=obj.account_id,
             payee_id=obj.payee_id,
+            override_subcategory=obj.override_subcategory,
             subcategory_id=obj.subcategory_id,
             note=obj.note
         )

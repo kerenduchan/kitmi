@@ -67,6 +67,7 @@ class Transaction(Base):
         sqlalchemy.Integer, sqlalchemy.ForeignKey(Account.id), nullable=False)
     payee_id = sqlalchemy.Column(
         sqlalchemy.Integer, sqlalchemy.ForeignKey(Payee.id), nullable=False)
+    override_subcategory = sqlalchemy.Column(sqlalchemy.Boolean, nullable=False, default=False)
     subcategory_id = sqlalchemy.Column(
         sqlalchemy.Integer, sqlalchemy.ForeignKey(Subcategory.id), nullable=True)
     note = sqlalchemy.Column(sqlalchemy.String, default="")
