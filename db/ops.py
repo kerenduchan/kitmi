@@ -160,8 +160,9 @@ async def delete_account(session, account_id):
     logging.debug(f'delete_account done')
 
 
-async def create_category(session, name, is_expense):
-    logging.info(f'DB: create_category {name} is_expense={is_expense}')
+async def create_category(session, name, is_expense, exclude_from_reports):
+    logging.info(f'DB: create_category {name} is_expense={is_expense} '
+                 f'exclude_from_reports={exclude_from_reports}')
 
     # don't allow empty name for category
     _test_not_empty(name, "Category name")
@@ -172,22 +173,27 @@ async def create_category(session, name, is_expense):
     order = await _get_largest_category_order(session) + 1
 
     # add the category
-    rec = db.schema.Category(name=name, is_expense=is_expense, order=order)
+    rec = db.schema.Category(name=name,
+                             is_expense=is_expense,
+                             order=order,
+                             exclude_from_reports=exclude_from_reports)
     session.add(rec)
     await session.commit()
     logging.debug(f'create_category created: {rec}')
     return rec
 
 
-async def update_category(session, category_id, name, is_expense):
-    logging.info(f'DB: update_category {category_id} {name} {is_expense}')
+async def update_category(session, category_id, name, is_expense, exclude_from_reports):
+    logging.info(f'DB: update_category {category_id} {name} {is_expense} {exclude_from_reports}')
 
     # don't allow empty name
     _test_not_empty(name, "Category name")
 
     sql = sqlalchemy.update(db.schema.Category) \
         .where(db.schema.Category.id == category_id) \
-        .values(name=name, is_expense=is_expense)
+        .values(name=name,
+                is_expense=is_expense,
+                exclude_from_reports=exclude_from_reports)
 
     await session.execute(sql)
     await session.commit()

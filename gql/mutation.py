@@ -41,17 +41,27 @@ class Mutation:
             rec = await db.ops.delete_account(s, int(account_id))
 
     @strawberry.mutation
-    async def create_category(self, name: str, is_expense: bool) \
+    async def create_category(self, name: str,
+                              is_expense: bool,
+                              exclude_from_reports: bool) \
             -> typing.Optional[gql.schema.Category]:
         async with db.session.SessionMaker() as s:
-            rec = await db.ops.create_category(s, name, is_expense)
+            rec = await db.ops.create_category(s, name,
+                                               is_expense,
+                                               exclude_from_reports)
         return gql.schema.Category.marshal(rec)
 
     @strawberry.mutation
-    async def update_category(self, category_id: strawberry.ID, name: str, is_expense: bool) \
+    async def update_category(self, category_id: strawberry.ID,
+                              name: str,
+                              is_expense: bool,
+                              exclude_from_reports: bool) \
             -> typing.Optional[gql.schema.Category]:
         async with db.session.SessionMaker() as s:
-            rec = await db.ops.update_category(s, int(category_id), name, is_expense)
+            rec = await db.ops.update_category(s, int(category_id),
+                                               name,
+                                               is_expense,
+                                               exclude_from_reports)
         if rec is None:
             return None
         return gql.schema.Category.marshal(rec)

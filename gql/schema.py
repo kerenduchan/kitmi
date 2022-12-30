@@ -44,6 +44,7 @@ class Category:
     name: str
     is_expense: bool
     order: int
+    exclude_from_reports: bool
 
     @strawberry.field
     async def subcategories(self, info: strawberry.types.Info) -> list["Subcategory"]:
@@ -56,7 +57,8 @@ class Category:
             id=strawberry.ID(str(obj.id)),
             name=obj.name,
             is_expense=obj.is_expense,
-            order=obj.order
+            order=obj.order,
+            exclude_from_reports=obj.exclude_from_reports
         )
 
 
