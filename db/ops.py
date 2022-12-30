@@ -460,8 +460,10 @@ async def get_summary(session, start_date, end_date, group_by, is_expense=True):
     subcategories = await get_all(session, 'Subcategory', 'id')
 
     # get all expense/income categories (depending on is_expense)
+    # that are not "excluded from reports"
     sql = sqlalchemy.select(db.schema.Category)\
-        .where(db.schema.Category.is_expense == is_expense)\
+        .where(db.schema.Category.is_expense == is_expense) \
+        .where(db.schema.Category.exclude_from_reports == False) \
         .order_by(db.schema.Category.order)
     categories = (await session.execute(sql)).scalars().unique().all()
 
@@ -474,7 +476,7 @@ async def get_summary(session, start_date, end_date, group_by, is_expense=True):
         .where(db.schema.Transaction.date <= end_date)
     transactions = (await session.execute(sql)).scalars().unique().all()
 
-    # only the subset of subcategories - expense/income
+    # only the subset of subcategories that belong to the filtered categories
     subcategories = _order_subcategories_by_categories(subcategories, categories)
 
     # Create the result summary object.
