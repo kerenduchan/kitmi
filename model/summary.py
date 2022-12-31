@@ -22,7 +22,7 @@ class SummaryForOneGroup:
     def fix_precision(self):
         for i in range(len(self.data)):
             d = self.data[i]
-            self.data[i] = f'{d:.2f}'
+            self.data[i] = f'{d:.0f}'
 
     def reverse_sign(self):
         for i in range(len(self.data)):
