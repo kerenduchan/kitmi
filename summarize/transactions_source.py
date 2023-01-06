@@ -100,12 +100,14 @@ class TransactionsSource(summarize.i_summary_source.ISummarySource):
 
     @staticmethod
     async def _load_transactions_data(session, start_date, end_date):
-        # get transaction amount, date, subcategory_id, payees.subcategory_id
+        # get transaction amount, date, subcategory_id, override_subcategory
+        # payees.subcategory_id
         # for all transactions whose date is between start_date and end_date
         sql = sqlalchemy.select(
             db.schema.Transaction.amount,
             db.schema.Transaction.date,
             db.schema.Transaction.subcategory_id,
+            db.schema.Transaction.override_subcategory,
             db.schema.Payee.subcategory_id) \
             .join_from(db.schema.Transaction,
                        db.schema.Payee) \
@@ -117,14 +119,17 @@ class TransactionsSource(summarize.i_summary_source.ISummarySource):
         """ Fill _items with transactions that are included in the summary """
 
         for td in transactions_data:
-            (amount, date, transaction_subcategory_id, payee_subcategory_id) \
-                = td
+            (amount,
+             date,
+             transaction_subcategory_id,
+             override_subcategory,
+             payee_subcategory_id) = td
 
             # Determine the actual subcategory_id for the transaction
             # (either of the payee or of the transaction)
-            subcategory_id = transaction_subcategory_id
-            if subcategory_id is None:
-                subcategory_id = payee_subcategory_id
+            subcategory_id = payee_subcategory_id
+            if override_subcategory:
+                subcategory_id = transaction_subcategory_id
 
             # Determine the category_id for the transaction
             category_id = self._subcategory_id_to_category_id.get(subcategory_id)
