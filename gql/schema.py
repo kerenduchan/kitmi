@@ -6,8 +6,8 @@ import strawberry.types
 import strawberry.fastapi
 import db.schema
 import model.yearly_summary
-import model.summary
-import model.summary_for_one_group
+import summarize.summary
+import summarize.summary_for_one_group
 import model.subcategory_usage_info
 
 
@@ -199,7 +199,7 @@ class SummaryForOneGroup:
     data: typing.List[float]
 
     @staticmethod
-    def marshal(obj: model.summary_for_one_group.SummaryForOneGroup) -> "SummaryForOneGroup":
+    def marshal(obj: summarize.summary_for_one_group.SummaryForOneGroup) -> "SummaryForOneGroup":
         return SummaryForOneGroup(
             group_id=obj.group_id,
             name=obj.name,
@@ -213,7 +213,7 @@ class Summary:
     groups: typing.List[SummaryForOneGroup]
 
     @staticmethod
-    def marshal(obj: model.summary.Summary) -> "Summary":
+    def marshal(obj: summarize.summary.Summary) -> "Summary":
         return Summary(
             x_axis=obj.x_axis,
             groups=[SummaryForOneGroup.marshal(g) for g_id, g in obj.groups.items()],

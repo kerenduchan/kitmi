@@ -15,32 +15,26 @@ class SummaryForOneGroup:
     data: typing.List[int]
 
     # constructor
-    def __init__(self, group_id, name, buckets_count):
+    def __init__(self, group_id: int, name: str, buckets_count: int):
         self.group_id = group_id
         self.name = name
         self.data = [0 for i in range(buckets_count)]
 
     # return the datapoint for the given bucket_idx
-    def get_datapoint(self, bucket_idx):
+    def get(self, bucket_idx: int) -> int:
         return self.data[bucket_idx]
 
-    def add_to_datapoint(self, bucket_idx, amount):
-        assert 0 <= bucket_idx < len(self.data)
+    def add(self, bucket_idx: int, amount: int) -> None:
         self.data[bucket_idx] += amount
 
-    def is_empty(self):
+    def set(self, bucket_idx: int, amount: int) -> None:
+        self.data[bucket_idx] = amount
+
+    def is_empty(self) -> bool:
         for d in self.data:
             if d != 0:
                 return False
         return True
 
-    def fix_precision(self):
-        for i in range(len(self.data)):
-            self.data[i] = int(self.data[i])
-
-    def reverse_sign(self):
-        for i in range(len(self.data)):
-            self.data[i] = -self.data[i]
-
     def __repr__(self):
-        return f"group_id={self.group_id} name='{self.name}' " + str(self.data)
+        return f"'{self.name}': " + str(self.data)

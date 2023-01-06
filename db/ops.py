@@ -8,8 +8,9 @@ import uuid
 import crypto
 import sqlalchemy.exc
 import model.yearly_summary
-import model.summary
+import summarize.summary
 import model.subcategory_usage_info
+import summarize.transactions_summarizer
 
 
 async def get_all(session, class_name, order_by_column_name):
@@ -460,47 +461,11 @@ async def get_yearly_summary(session, year):
     return summary
 
 
-async def get_summary(session, start_date, end_date, group_by, is_expense=True):
+async def get_summary(session, start_date, end_date, group_by, is_expense=True) \
+        -> summarize.summary.Summary:
 
-    subcategories = await get_all(session, 'Subcategory', 'id')
-
-    # get all expense/income categories (depending on is_expense)
-    # that are not "excluded from reports"
-    sql = sqlalchemy.select(db.schema.Category)\
-        .where(db.schema.Category.is_expense == is_expense) \
-        .where(db.schema.Category.exclude_from_reports == False) \
-        .order_by(db.schema.Category.order)
-    categories = (await session.execute(sql)).scalars().unique().all()
-
-    # get all payees (in order to determine the transactions' subcategories)
-    payees = await get_all(session, 'Payee', 'id')
-
-    # get all transactions between start and end date
-    sql = sqlalchemy.select(db.schema.Transaction)\
-        .where(db.schema.Transaction.date >= start_date)\
-        .where(db.schema.Transaction.date <= end_date)
-    transactions = (await session.execute(sql)).scalars().unique().all()
-
-    # only the subset of subcategories that belong to the filtered categories
-    subcategories = _order_subcategories_by_categories(subcategories, categories)
-
-    # Create the result summary object.
-    summary = model.summary.Summary(start_date, end_date, group_by, is_expense, payees, subcategories)
-
-    # Add every (expense/income) subcategory/category to the summary
-    if group_by == 'category':
-        for c in categories:
-            summary.add_group(c.id, c.name)
-    else:
-        for s in subcategories:
-            summary.add_group(s.id, s.name)
-
-    # Sum the transaction in the appropriate group and month.
-    # Payees are needed in order to determine the subcategory_id/category_id
-    # of the transaction.
-    summary.add_transactions(transactions)
-
-    return summary
+    summarizer = summarize.transactions_summarizer.TransactionsSummarizer()
+    return await summarizer.execute(session, start_date, end_date, group_by, is_expense)
 
 
 async def get_subcategory_usage_info(session, subcategory_id):
@@ -554,18 +519,3 @@ async def _get_largest_category_order(session):
     if len(categories) == 0:
         return 0
     return categories[len(categories) - 1].order
-
-
-def _order_subcategories_by_categories(subcategories, categories):
-    # order the subcategories by the categories' order
-    category_id_to_subcategories = {c.id: [] for c in categories}
-    for s in subcategories:
-        category = category_id_to_subcategories.get(s.category_id)
-        if category is not None:
-            category_id_to_subcategories[s.category_id].append(s)
-
-    res = []
-    for c, subcategories in category_id_to_subcategories.items():
-        res += subcategories
-
-    return res
