@@ -461,13 +461,6 @@ async def get_yearly_summary(session, year):
     return summary
 
 
-async def get_summary(session, start_date, end_date, group_by, is_expense=True) \
-        -> summarize.summary.Summary:
-
-    summarizer = summarize.transactions_summarizer.TransactionsSummarizer()
-    return await summarizer.execute(session, start_date, end_date, group_by, is_expense)
-
-
 async def get_subcategory_usage_info(session, subcategory_id):
 
     # this will raise an exception if the subcategory doesn't exist

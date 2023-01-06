@@ -9,7 +9,7 @@ from summarize.postprocess.merge_under_threshold import MergeUnderThreshold
 class TransactionsSummarizer:
 
     @staticmethod
-    async def execute(session, start_date, end_date, group_by, is_expense):
+    async def execute(session, start_date, end_date, group_by, is_expense, merge_under_threshold=True):
 
         # load source data
         source = TransactionsSource(
@@ -26,7 +26,9 @@ class TransactionsSummarizer:
         if is_expense:
             postprocessors.append(ReverseSign())
 
-        postprocessors.append(MergeUnderThreshold())
+        if merge_under_threshold:
+            postprocessors.append(MergeUnderThreshold())
+
         postprocessors.append(EraseEmptyGroups())
 
         for p in postprocessors:

@@ -5,6 +5,7 @@ import gql.schema
 import db.schema
 import db.session
 import db.ops
+import summarize.transactions_summarizer
 
 
 async def _begin_session_and_get_all(class_name, order_by_column_name):
@@ -76,10 +77,11 @@ class Query:
 
     @strawberry.field
     async def summary(self, start_date: datetime.date,
-                      end_date: datetime.date, group_by: str, is_expense: bool=True)\
+                      end_date: datetime.date, group_by: str, is_expense: bool = True)\
             -> typing.Optional[gql.schema.Summary]:
+        summarizer = summarize.transactions_summarizer.TransactionsSummarizer()
         async with db.session.SessionMaker() as session:
-            res = await db.ops.get_summary(session, start_date, end_date, group_by, is_expense)
+            res = await summarizer.execute(session, start_date, end_date, group_by, is_expense)
         return gql.schema.Summary.marshal(res)
 
     @strawberry.field
