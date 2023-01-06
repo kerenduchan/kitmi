@@ -1,19 +1,18 @@
 import typing
 from summarize.summary_for_one_group import SummaryForOneGroup
-import summarize.i_summary_source
 
 
 class Summary:
 
     groups: typing.Dict[int, SummaryForOneGroup]
-    x_axis: typing.List[str]
+    buckets: typing.List[str]
 
     def __init__(self, buckets):
         self.groups = {}
-        self.x_axis = buckets
+        self.buckets = buckets
 
     def get_buckets_count(self):
-        return len(self.x_axis)
+        return len(self.buckets)
 
     def add_group(self, group_id, group_name):
         self.groups[group_id] = SummaryForOneGroup(
@@ -34,15 +33,15 @@ class Summary:
         return [(g_id, g.get(bucket_id)) for g_id, g in self.groups.items()]
 
     def __repr__(self):
-        return str(self.x_axis) + '\n' + str(self.groups)
+        return str(self.buckets) + '\n' + str(self.groups)
 
     def get_transposed_str(self):
         res = ''
-        for bucket_idx, bucket in enumerate(self.x_axis):
+        for bucket_idx, bucket in enumerate(self.buckets):
             res += f'{bucket}: '
             for g_id, g in self.groups.items():
                 res += f'{g.name}={g.get(bucket_idx)} '
-            if bucket_idx < len(self.x_axis) - 1:
+            if bucket_idx < self.get_buckets_count() - 1:
                 res += '\n'
 
         return res
