@@ -70,18 +70,13 @@ class Query:
         return await _begin_session_and_get_one_by_id("Transaction", id)
 
     @strawberry.field
-    async def yearly_summary(self, year: int) -> typing.Optional[gql.schema.YearlySummary]:
-        async with db.session.SessionMaker() as session:
-            res = await db.ops.get_yearly_summary(session, year)
-        return gql.schema.YearlySummary.marshal(res)
-
-    @strawberry.field
     async def summary(self, start_date: datetime.date,
-                      end_date: datetime.date, group_by: str, is_expense: bool = True)\
+                      end_date: datetime.date, group_by: str, is_expense: bool = True,
+                      merge_under_threshold: bool = True)\
             -> typing.Optional[gql.schema.Summary]:
         summarizer = summarize.transactions_summarizer.TransactionsSummarizer()
         async with db.session.SessionMaker() as session:
-            res = await summarizer.execute(session, start_date, end_date, group_by, is_expense)
+            res = await summarizer.execute(session, start_date, end_date, group_by, is_expense, merge_under_threshold)
         return gql.schema.Summary.marshal(res)
 
     @strawberry.field

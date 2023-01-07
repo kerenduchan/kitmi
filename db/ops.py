@@ -7,10 +7,7 @@ import sqlalchemy.dialects.sqlite
 import uuid
 import crypto
 import sqlalchemy.exc
-import model.yearly_summary
-import summarize.summary
 import model.subcategory_usage_info
-import summarize.transactions_summarizer
 
 
 async def get_all(session, class_name, order_by_column_name):
@@ -434,31 +431,6 @@ async def create_payees_ignore_conflict(session, names):
     values = [{'name': n} for n in names]
     await session.execute(stmt, values)
     await session.commit()
-
-
-async def get_yearly_summary(session, year):
-
-    subcategories = await get_all(session, "Subcategory", "id")
-    categories = await get_all(session, "Category", "id")
-    payees = await get_all(session, "Payee", "id")
-
-    # get all transactions for this year
-    # (TODO: filter by year)
-    sql = sqlalchemy.select(db.schema.Transaction)
-    transactions = (await session.execute(sql)).scalars().unique().all()
-
-    # Create the result yearly summary object.
-    summary = model.yearly_summary.YearlySummary(year)
-
-    # Add every subcategory to the summary
-    for s in subcategories:
-        summary.add_subcategory(s.id)
-
-    # Sum the transaction in the appropriate subcategory and month.
-    # Payees are needed in order to determine the subcategory_id of the transaction.
-    summary.add_transactions(transactions, payees)
-
-    return summary
 
 
 async def get_subcategory_usage_info(session, subcategory_id):

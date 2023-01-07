@@ -5,7 +5,6 @@ import strawberry
 import strawberry.types
 import strawberry.fastapi
 import db.schema
-import model.yearly_summary
 import summarize.summary
 import summarize.summary_for_one_group
 import model.subcategory_usage_info
@@ -156,39 +155,6 @@ class Transaction:
             override_subcategory=obj.override_subcategory,
             subcategory_id=obj.subcategory_id,
             note=obj.note
-        )
-
-
-@strawberry.type
-class YearlySummaryRow:
-    subcategory_id: strawberry.ID
-    monthly_sums: typing.List[float]
-    total_sum: float
-
-    @strawberry.field
-    async def subcategory(self, info: strawberry.types.Info) -> typing.Optional["Subcategory"]:
-        s = await info.context["subcategories_loader"].load(self.subcategory_id)
-        return Subcategory.marshal(s)
-
-    @staticmethod
-    def marshal(obj: model.yearly_summary.YearlySummaryRow) -> "YearlySummaryRow":
-        return YearlySummaryRow(
-            subcategory_id=obj.subcategory_id,
-            monthly_sums=obj.monthly_sums,
-            total_sum=obj.total_sum
-        )
-
-
-@strawberry.type
-class YearlySummary:
-    year: int
-    rows: typing.List[YearlySummaryRow]
-
-    @staticmethod
-    def marshal(obj: model.yearly_summary.YearlySummary) -> "YearlySummary":
-        return YearlySummary(
-            year=obj.year,
-            rows=[YearlySummaryRow.marshal(row) for s_id, row in obj.rows.items()],
         )
 
 
