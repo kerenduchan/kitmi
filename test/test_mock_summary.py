@@ -6,6 +6,7 @@ from summarize.postprocess.fix_precision import FixPrecision
 from summarize.postprocess.reverse_sign import ReverseSign
 from summarize.postprocess.erase_empty_groups import EraseEmptyGroups
 from summarize.postprocess.merge_under_threshold import MergeUnderThreshold
+from summarize.postprocess.calc_totals import CalcTotals
 
 
 class MockSummarySource(ISummarySource):
@@ -63,12 +64,14 @@ def test_mock_summary():
         ReverseSign(),
         MergeUnderThreshold(),
         EraseEmptyGroups(),
+        CalcTotals(),
     ]
 
     for p in postprocessors:
         print(type(p).__name__)
         p.execute(summary)
-        print(summary.get_transposed_str())
+#        print(summary.get_transposed_str())
+        print(summary)
 
 
 if __name__ == "__main__":

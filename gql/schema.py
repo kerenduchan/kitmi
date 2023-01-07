@@ -163,6 +163,7 @@ class SummaryForOneGroup:
     group_id: strawberry.ID
     name: str
     data: typing.List[float]
+    total: float
 
     @staticmethod
     def marshal(obj: summarize.summary_for_one_group.SummaryForOneGroup) -> "SummaryForOneGroup":
@@ -170,6 +171,7 @@ class SummaryForOneGroup:
             group_id=obj.group_id,
             name=obj.name,
             data=obj.data,
+            total=obj.total
         )
 
 

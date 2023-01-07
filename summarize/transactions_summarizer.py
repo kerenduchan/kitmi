@@ -4,6 +4,7 @@ from summarize.postprocess.erase_empty_groups import EraseEmptyGroups
 from summarize.postprocess.fix_precision import FixPrecision
 from summarize.postprocess.reverse_sign import ReverseSign
 from summarize.postprocess.merge_under_threshold import MergeUnderThreshold
+from summarize.postprocess.calc_totals import CalcTotals
 
 
 class TransactionsSummarizer:
@@ -30,6 +31,7 @@ class TransactionsSummarizer:
             postprocessors.append(MergeUnderThreshold())
 
         postprocessors.append(EraseEmptyGroups())
+        postprocessors.append(CalcTotals())
 
         for p in postprocessors:
             p.execute(summary)

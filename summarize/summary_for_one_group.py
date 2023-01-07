@@ -12,23 +12,26 @@ class SummaryForOneGroup:
 
     # The datapoints (sums) for this group.
     # List length is equal to the number of buckets
-    data: typing.List[int]
+    data: typing.List[float]
+
+    total: float
 
     # constructor
     def __init__(self, group_id: int, name: str, buckets_count: int):
         self.group_id = group_id
         self.name = name
         self.data = [0 for i in range(buckets_count)]
+        self.total = 0
 
     # return the datapoint for the given bucket_idx
-    def get(self, bucket_idx: int) -> int:
+    def get(self, bucket_idx: int) -> float:
         return self.data[bucket_idx]
 
-    def add(self, bucket_idx: int, amount: int) -> None:
-        self.data[bucket_idx] += amount
+    def add(self, bucket_idx: int, value: float) -> None:
+        self.data[bucket_idx] += value
 
-    def set(self, bucket_idx: int, amount: int) -> None:
-        self.data[bucket_idx] = amount
+    def set(self, bucket_idx: int, value: float) -> None:
+        self.data[bucket_idx] = value
 
     def is_empty(self) -> bool:
         for d in self.data:
@@ -37,4 +40,4 @@ class SummaryForOneGroup:
         return True
 
     def __repr__(self):
-        return f"'{self.name}': " + str(self.data)
+        return f"'{self.name}': " + str(self.data) + f' (total={self.total})'

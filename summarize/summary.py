@@ -21,13 +21,13 @@ class Summary:
     def get_group_by_id(self, group_id):
         return self.groups[group_id]
 
-    def add(self, group_id, bucket_idx, amount):
+    def add(self, group_id, bucket_idx, value):
         group = self.get_group_by_id(group_id)
-        group.add(bucket_idx, amount)
+        group.add(bucket_idx, value)
 
-    def set(self, group_id, bucket_idx, amount):
+    def set(self, group_id, bucket_idx, value):
         group = self.get_group_by_id(group_id)
-        group.set(bucket_idx, amount)
+        group.set(bucket_idx, value)
 
     def get_data_for_bucket(self, bucket_id):
         return [(g_id, g.get(bucket_id)) for g_id, g in self.groups.items()]
