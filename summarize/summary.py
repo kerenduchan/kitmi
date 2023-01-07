@@ -6,10 +6,12 @@ class Summary:
 
     groups: typing.Dict[int, SummaryForOneGroup]
     buckets: typing.List[str]
+    totals: typing.List[float]
 
     def __init__(self, buckets):
         self.groups = {}
         self.buckets = buckets
+        self.totals = [0 for i in range(len(buckets) + 1)]
 
     def get_buckets_count(self):
         return len(self.buckets)

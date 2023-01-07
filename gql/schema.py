@@ -179,12 +179,14 @@ class SummaryForOneGroup:
 class Summary:
     buckets: typing.List[str]
     groups: typing.List[SummaryForOneGroup]
+    totals: typing.List[float]
 
     @staticmethod
     def marshal(obj: summarize.summary.Summary) -> "Summary":
         return Summary(
             buckets=obj.buckets,
             groups=[SummaryForOneGroup.marshal(g) for g_id, g in obj.groups.items()],
+            totals=obj.totals
         )
 
 
