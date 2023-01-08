@@ -39,4 +39,10 @@ class BalanceSummarizer:
             summary.savings.append(saving)
             summary.savings_percentages.append(int(100 * saving / income))
 
+        # fill savings_total
+        summary.savings_total = summary.income.sum_total - summary.expenses.sum_total
+
+        # fill savings_total_percentage
+        summary.savings_total_percentage = int(100 * summary.savings_total / summary.income.sum_total)
+
         return summary

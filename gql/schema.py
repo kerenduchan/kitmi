@@ -210,7 +210,9 @@ class BalanceSummary:
     income: Summary
     expenses: Summary
     savings: typing.List[float]
+    savings_total: float
     savings_percentages: typing.List[int]
+    savings_total_percentage: int
 
     @staticmethod
     def marshal(obj: summarize.balance_summary.BalanceSummary) -> "BalanceSummary":
@@ -218,7 +220,9 @@ class BalanceSummary:
             income=Summary.marshal(obj.income),
             expenses=Summary.marshal(obj.expenses),
             savings=obj.savings,
-            savings_percentages=obj.savings_percentages
+            savings_total=obj.savings_total,
+            savings_percentages=obj.savings_percentages,
+            savings_total_percentage=obj.savings_total_percentage
         )
 
 
