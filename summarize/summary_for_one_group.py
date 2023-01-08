@@ -21,7 +21,7 @@ class SummaryForOneGroup:
         self.group_id = group_id
         self.name = name
         self.data = [0 for i in range(buckets_count)]
-        self.total = 0
+        self.total = None
 
     # return the datapoint for the given bucket_idx
     def get(self, bucket_idx: int) -> float:

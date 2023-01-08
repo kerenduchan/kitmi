@@ -8,15 +8,17 @@ class CalcTotals(IPostprocessor):
 
         # calc total per group
         for g_id, g in summary.groups.items():
-                g.total = 0
-                for value in g.data:
-                    g.total += value
+            g.total = 0
+            for value in g.data:
+                g.total += value
 
         # calc total per bucket
+        summary.bucket_totals = [0 for i in range(summary.get_buckets_count())]
         for bucket_idx, b in enumerate(summary.buckets):
             for g_id, g in summary.groups.items():
-                summary.totals[bucket_idx] += g.get(bucket_idx)
+                summary.bucket_totals[bucket_idx] += g.get(bucket_idx)
 
-        # calc total of totals
-        for bucket_idx, b in enumerate(summary.buckets):
-            summary.totals[len(summary.totals) - 1] += summary.totals[bucket_idx]
+        # calc total
+        summary.sum_total = 0
+        for bucket_total in summary.bucket_totals:
+            summary.sum_total += bucket_total
