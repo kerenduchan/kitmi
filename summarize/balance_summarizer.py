@@ -29,7 +29,14 @@ class BalanceSummarizer:
         options.is_expense = True
         summary.expenses = await summarizer.execute(session, start_date, end_date, options)
 
+        # fill the savings and savings_percentages
+        income_and_expenses = zip(summary.income.bucket_totals, summary.expenses.bucket_totals)
         summary.savings = []
         summary.savings_percentages = []
+
+        for income, expense in income_and_expenses:
+            saving = income - expense
+            summary.savings.append(saving)
+            summary.savings_percentages.append(int(100 * saving / income))
 
         return summary
