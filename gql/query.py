@@ -72,11 +72,18 @@ class Query:
     @strawberry.field
     async def summary(self, start_date: datetime.date,
                       end_date: datetime.date, group_by: str, is_expense: bool = True,
-                      merge_under_threshold: bool = True)\
+                      merge_under_threshold: bool = True, bucket_size: str = 'month')\
             -> typing.Optional[gql.schema.Summary]:
         summarizer = summarize.transactions_summarizer.TransactionsSummarizer()
         async with db.session.SessionMaker() as session:
-            res = await summarizer.execute(session, start_date, end_date, group_by, is_expense, merge_under_threshold)
+            res = await summarizer.execute(
+                session,
+                start_date,
+                end_date,
+                group_by,
+                is_expense,
+                merge_under_threshold,
+                bucket_size)
         return gql.schema.Summary.marshal(res)
 
     @strawberry.field

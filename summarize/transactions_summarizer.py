@@ -5,16 +5,16 @@ from summarize.postprocess.fix_precision import FixPrecision
 from summarize.postprocess.reverse_sign import ReverseSign
 from summarize.postprocess.merge_under_threshold import MergeUnderThreshold
 from summarize.postprocess.calc_totals import CalcTotals
-
+from summarize.postprocess.order_groups_by_size_in_first_bucket import OrderGroupsBySizeInFirstBucket
 
 class TransactionsSummarizer:
 
     @staticmethod
-    async def execute(session, start_date, end_date, group_by, is_expense, merge_under_threshold=True):
+    async def execute(session, start_date, end_date, group_by, is_expense, merge_under_threshold=True, bucket_size='month'):
 
         # load source data
         source = TransactionsSource(
-            session, is_expense, start_date, end_date, group_by)
+            session, is_expense, start_date, end_date, group_by, bucket_size)
         await source.load()
 
         # summarize
@@ -32,6 +32,9 @@ class TransactionsSummarizer:
 
         postprocessors.append(EraseEmptyGroups())
         postprocessors.append(CalcTotals())
+
+        if(bucket_size == 'range'):
+            postprocessors.append(OrderGroupsBySizeInFirstBucket())
 
         for p in postprocessors:
             p.execute(summary)

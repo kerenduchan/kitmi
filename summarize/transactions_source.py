@@ -8,16 +8,23 @@ import util
 class TransactionsSource(summarize.i_summary_source.ISummarySource):
     """ Concrete class - the summary source for transactions """
 
-    def __init__(self, session, is_expense, start_date, end_date, group_by):
+    def __init__(self, session, is_expense, start_date, end_date, group_by, bucket_size='month'):
         assert group_by in ['category', 'subcategory']
+        assert bucket_size in ['month', 'range']
         self._session = session
         self._is_expense = is_expense
         self._start_date = start_date
         self._end_date = end_date
         self._group_by = group_by
 
-        self._buckets = util.get_months(start_date, end_date)
-        self._bucket_name_to_bucket_idx = {bucket: idx for idx, bucket in enumerate(self._buckets)}
+        self._bucket_size = bucket_size
+
+        if bucket_size == 'month':
+            self._buckets = util.get_months(start_date, end_date)
+            self._bucket_name_to_bucket_idx = {bucket: idx for idx, bucket in enumerate(self._buckets)}
+        elif bucket_size == 'range':
+            name = 'Date Range'
+            self._buckets = [name]
 
         # will be filled by the load() function
         self._items = []
@@ -150,5 +157,9 @@ class TransactionsSource(summarize.i_summary_source.ISummarySource):
                 self._items.append(item)
 
     def _get_bucket_idx(self, date):
-        month_and_year = date.strftime('%Y-%m')
-        return self._bucket_name_to_bucket_idx[month_and_year]
+        if self._bucket_size == 'month':
+            month_and_year = date.strftime('%Y-%m')
+            return self._bucket_name_to_bucket_idx[month_and_year]
+
+        # bucket_size is 'range'. There's only one bucket.
+        return 0
