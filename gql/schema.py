@@ -8,7 +8,7 @@ import db.schema
 import summarize.summary
 import summarize.summary_for_one_group
 import model.subcategory_usage_info
-import summarize.options
+import summarize.income_vs_expenses_summary
 
 
 @strawberry.enum
@@ -203,6 +203,23 @@ class SummaryGroupBy(enum.Enum):
 class SummaryBucketBy(enum.Enum):
     month = "month"
     range = "range"
+
+
+@strawberry.type
+class IncomeVsExpensesSummary:
+    income: Summary
+    expenses: Summary
+    savings: typing.List[float]
+    savings_percentages: typing.List[int]
+
+    @staticmethod
+    def marshal(obj: summarize.income_vs_expenses_summary.IncomeVsExpensesSummary) -> "IncomeVsExpensesSummary":
+        return IncomeVsExpensesSummary(
+            income=Summary.marshal(obj.income),
+            expenses=Summary.marshal(obj.expenses),
+            savings=obj.savings,
+            savings_percentages=obj.savings_percentages
+        )
 
 
 @strawberry.input

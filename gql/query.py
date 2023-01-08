@@ -6,6 +6,8 @@ import db.schema
 import db.session
 import db.ops
 import summarize.transactions_summarizer
+import summarize.income_vs_expenses_summarizer
+import summarize.options
 
 
 async def _begin_session_and_get_all(class_name, order_by_column_name):
@@ -81,6 +83,20 @@ class Query:
                 end_date,
                 options.convert())
         return gql.schema.Summary.marshal(res)
+
+    @strawberry.field
+    async def income_vs_expenses_summary(self, start_date: datetime.date,
+                                         end_date: datetime.date,
+                                         group_by: gql.schema.SummaryGroupBy) \
+            -> typing.Optional[gql.schema.IncomeVsExpensesSummary]:
+        summarizer = summarize.income_vs_expenses_summarizer.IncomeVsExpensesSummarizer()
+        async with db.session.SessionMaker() as session:
+            res = await summarizer.execute(
+                session,
+                start_date,
+                end_date,
+                summarize.options.SummaryGroupBy(group_by.value))
+        return gql.schema.IncomeVsExpensesSummary.marshal(res)
 
     @strawberry.field
     async def subcategory_usage_info(self, subcategory_id: strawberry.ID) -> \
