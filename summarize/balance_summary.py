@@ -2,7 +2,7 @@ import typing
 import summarize.summary
 
 
-class IncomeVsExpensesSummary:
+class BalanceSummary:
     income: summarize.summary.Summary
     expenses: summarize.summary.Summary
     savings: typing.List[float]

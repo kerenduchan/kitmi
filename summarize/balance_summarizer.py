@@ -1,17 +1,17 @@
 import datetime
-import summarize.income_vs_expenses_summary
+import summarize.balance_summary
 import summarize.transactions_summarizer
 import summarize.options
 
 
-class IncomeVsExpensesSummarizer:
+class BalanceSummarizer:
 
     async def execute(self, session,
                       start_date: datetime.date,
                       end_date: datetime.date,
                       group_by):
 
-        summary = summarize.income_vs_expenses_summary.IncomeVsExpensesSummary()
+        summary = summarize.balance_summary.BalanceSummary()
 
         summarizer = summarize.transactions_summarizer.TransactionsSummarizer()
 

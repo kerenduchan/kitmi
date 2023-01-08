@@ -6,7 +6,7 @@ import db.schema
 import db.session
 import db.ops
 import summarize.transactions_summarizer
-import summarize.income_vs_expenses_summarizer
+import summarize.balance_summarizer
 import summarize.options
 
 
@@ -85,18 +85,18 @@ class Query:
         return gql.schema.Summary.marshal(res)
 
     @strawberry.field
-    async def income_vs_expenses_summary(self, start_date: datetime.date,
-                                         end_date: datetime.date,
-                                         group_by: gql.schema.SummaryGroupBy) \
-            -> typing.Optional[gql.schema.IncomeVsExpensesSummary]:
-        summarizer = summarize.income_vs_expenses_summarizer.IncomeVsExpensesSummarizer()
+    async def balance_summary(self, start_date: datetime.date,
+                              end_date: datetime.date,
+                              group_by: gql.schema.SummaryGroupBy) \
+            -> typing.Optional[gql.schema.BalanceSummary]:
+        summarizer = summarize.balance_summarizer.BalanceSummarizer()
         async with db.session.SessionMaker() as session:
             res = await summarizer.execute(
                 session,
                 start_date,
                 end_date,
                 summarize.options.SummaryGroupBy(group_by.value))
-        return gql.schema.IncomeVsExpensesSummary.marshal(res)
+        return gql.schema.BalanceSummary.marshal(res)
 
     @strawberry.field
     async def subcategory_usage_info(self, subcategory_id: strawberry.ID) -> \
