@@ -1,30 +1,31 @@
+import datetime
 import summarize.i_summary_source
 import summarize.summary_source_item
 import sqlalchemy
 import db.schema
 import util
+import summarize.options
 
 
 class TransactionsSource(summarize.i_summary_source.ISummarySource):
     """ Concrete class - the summary source for transactions """
 
-    def __init__(self, session, is_expense, start_date, end_date, group_by, bucket_size='month'):
-        assert group_by in ['category', 'subcategory']
-        assert bucket_size in ['month', 'range']
+    def __init__(self, session,
+                 start_date: datetime.date,
+                 end_date: datetime.date,
+                 options: summarize.options.SummaryOptions):
         self._session = session
-        self._is_expense = is_expense
         self._start_date = start_date
         self._end_date = end_date
-        self._group_by = group_by
+        self._options = options
 
-        self._bucket_size = bucket_size
-
-        if bucket_size == 'month':
+        if self._is_bucket_by_month():
             self._buckets = util.get_months(start_date, end_date)
-            self._bucket_name_to_bucket_idx = {bucket: idx for idx, bucket in enumerate(self._buckets)}
-        elif bucket_size == 'range':
-            name = 'Date Range'
-            self._buckets = [name]
+            self._bucket_name_to_bucket_idx = \
+                {bucket: idx for idx, bucket in enumerate(self._buckets)}
+        else:
+            # bucket_by is 'range' - there's only one bucket for the whole range
+            self._buckets = ['']
 
         # will be filled by the load() function
         self._items = []
@@ -60,7 +61,7 @@ class TransactionsSource(summarize.i_summary_source.ISummarySource):
         self._fill_items(transactions_data)
 
     def get_groups(self):
-        if self._group_by == 'category':
+        if self._is_group_by_category():
             return self._category_id_to_name
 
         return self._subcategory_id_to_name
@@ -75,7 +76,7 @@ class TransactionsSource(summarize.i_summary_source.ISummarySource):
         # Get all expense/income categories (depending on is_expense)
         # that are not 'excluded from reports'
         sql = sqlalchemy.select(db.schema.Category) \
-            .where(db.schema.Category.is_expense == self._is_expense) \
+            .where(db.schema.Category.is_expense == self._options.is_expense) \
             .where(db.schema.Category.exclude_from_reports == False) \
             .order_by(db.schema.Category.order)
         categories = (await self._session.execute(sql)).scalars().unique().all()
@@ -147,7 +148,7 @@ class TransactionsSource(summarize.i_summary_source.ISummarySource):
 
                 # the group_id of this item
                 group_id = category_id
-                if self._group_by == 'subcategory':
+                if not self._is_group_by_category():
                     group_id = subcategory_id
 
                 item = summarize.summary_source_item.SummarySourceItem(
@@ -157,9 +158,15 @@ class TransactionsSource(summarize.i_summary_source.ISummarySource):
                 self._items.append(item)
 
     def _get_bucket_idx(self, date):
-        if self._bucket_size == 'month':
+        if self._is_bucket_by_month():
             month_and_year = date.strftime('%Y-%m')
             return self._bucket_name_to_bucket_idx[month_and_year]
 
-        # bucket_size is 'range'. There's only one bucket.
+        # bucket_by is 'range'. There's only one bucket.
         return 0
+
+    def _is_bucket_by_month(self):
+        return self._options.bucket_by.name == 'month'
+
+    def _is_group_by_category(self):
+        return self._options.group_by.name == 'category'

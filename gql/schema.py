@@ -8,6 +8,7 @@ import db.schema
 import summarize.summary
 import summarize.summary_for_one_group
 import model.subcategory_usage_info
+import summarize.options
 
 
 @strawberry.enum
@@ -187,6 +188,34 @@ class Summary:
             buckets=obj.buckets,
             groups=[SummaryForOneGroup.marshal(g) for g_id, g in obj.groups.items()],
             totals=obj.totals
+        )
+
+
+@strawberry.enum
+class SummaryGroupBy(enum.Enum):
+    category = "category"
+    subcategory = "subcategory"
+
+
+@strawberry.enum
+class SummaryBucketBy(enum.Enum):
+    month = "month"
+    range = "range"
+
+
+@strawberry.input
+class SummaryOptions:
+    is_expense: bool
+    group_by: SummaryGroupBy
+    bucket_by: SummaryBucketBy
+    merge_under_threshold: bool
+
+    def convert(self):
+        return summarize.options.SummaryOptions(
+            is_expense=self.is_expense,
+            group_by=self.group_by,
+            bucket_by=self.bucket_by,
+            merge_under_threshold=self.merge_under_threshold
         )
 
 
