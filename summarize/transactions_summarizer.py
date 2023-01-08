@@ -19,9 +19,6 @@ class TransactionsSummarizer:
                       end_date: datetime.date,
                       options: summarize.options.SummaryOptions):
 
-        is_expense = options.is_expense
-        merge_under_threshold = options.merge_under_threshold
-
         # load source data
         source = summarize.transactions_source.TransactionsSource(
             session, start_date, end_date, options)
@@ -34,10 +31,10 @@ class TransactionsSummarizer:
         # post-process
         postprocessors = [FixPrecision()]
 
-        if is_expense:
+        if options.is_expense:
             postprocessors.append(ReverseSign())
 
-        if merge_under_threshold:
+        if options.merge_under_threshold:
             postprocessors.append(MergeUnderThreshold())
 
         postprocessors.append(EraseEmptyGroups())
