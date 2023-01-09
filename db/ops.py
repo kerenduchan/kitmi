@@ -342,9 +342,8 @@ async def create_payee(session, name, subcategory_id, note):
     return rec
 
 
-async def update_payee(session, payee_id, subcategory_id):
-    logging.info(f'DB: update_payee payee_id={payee_id} '
-                 f'subcategory_id={subcategory_id}')
+async def update_payee(session, payee_id, subcategory_id, note):
+    logging.info(f'DB: update_payee {payee_id} {subcategory_id} {note}')
 
     if subcategory_id is not None:
         # Check if a subcategory with this subcategory_id exists
@@ -353,7 +352,10 @@ async def update_payee(session, payee_id, subcategory_id):
     # set subcategory_id of the payee to null or a number
     sql = sqlalchemy.update(db.schema.Payee) \
         .where(db.schema.Payee.id == payee_id) \
-        .values(subcategory_id=subcategory_id)
+        .values(
+        subcategory_id=subcategory_id,
+        note=note
+    )
 
     await session.execute(sql)
     await session.commit()
