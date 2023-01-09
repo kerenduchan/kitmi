@@ -119,7 +119,7 @@ class Mutation:
     @strawberry.mutation
     async def update_payee(self, payee_id: strawberry.ID,
                            subcategory_id: typing.Optional[strawberry.ID],
-                           note: str) \
+                           note: typing.Optional[str]) \
             -> typing.Optional[gql.schema.Payee]:
         if subcategory_id is not None:
             subcategory_id = int(subcategory_id)
@@ -149,14 +149,15 @@ class Mutation:
     @strawberry.mutation
     async def update_transaction(self, transaction_id: strawberry.ID,
                                  override_subcategory: typing.Optional[bool],
-                                 subcategory_id: typing.Optional[strawberry.ID]) \
+                                 subcategory_id: typing.Optional[strawberry.ID],
+                                 note: typing.Optional[str]) \
             -> typing.Optional[gql.schema.Transaction]:
         async with db.session.SessionMaker() as s:
             if subcategory_id is not None:
                 subcategory_id = int(subcategory_id)
             rec = await db.ops.update_transaction(s, transaction_id,
                                                   override_subcategory,
-                                                  subcategory_id)
+                                                  subcategory_id, note)
         if rec is None:
             return None
         return gql.schema.Transaction.marshal(rec)

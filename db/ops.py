@@ -349,13 +349,15 @@ async def update_payee(session, payee_id, subcategory_id, note):
         # Check if a subcategory with this subcategory_id exists
         await _test_exists(session, "Subcategory", "id", subcategory_id)
 
+    values = {'subcategory_id': subcategory_id}
+
+    if note is not None:
+        values['note'] = note
+
     # set subcategory_id of the payee to null or a number
     sql = sqlalchemy.update(db.schema.Payee) \
         .where(db.schema.Payee.id == payee_id) \
-        .values(
-        subcategory_id=subcategory_id,
-        note=note
-    )
+        .values(**values)
 
     await session.execute(sql)
     await session.commit()
@@ -395,15 +397,22 @@ async def create_transaction(session, date, amount, account_id, payee_id, subcat
     return rec
 
 
-async def update_transaction(session, transaction_id, override_subcategory, subcategory_id):
-    logging.info(f'DB: update_transaction transaction_id={transaction_id} '
-                 f'subcategory_id={subcategory_id}')
+async def update_transaction(session,
+                             transaction_id,
+                             override_subcategory,
+                             subcategory_id,
+                             note):
+    logging.info(f'DB: update_transaction {transaction_id} '
+                 f'{override_subcategory} {subcategory_id} {note}')
 
     if subcategory_id is not None:
         # Check if a subcategory with this subcategory_id exists
         await _test_exists(session, "Subcategory", "id", subcategory_id)
 
     values = {'subcategory_id': subcategory_id}
+
+    if note is not None:
+        values['note'] = note
 
     if override_subcategory is not None:
         values['override_subcategory'] = override_subcategory
