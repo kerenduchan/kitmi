@@ -2,20 +2,20 @@ import asyncio
 import sqlalchemy.ext.asyncio
 import sqlalchemy.ext.declarative
 import sqlalchemy.orm
-import random
 import typing
 import crypto
+import sys
 
 Base = sqlalchemy.ext.declarative.declarative_base()
 
 
-class Item(Base):
-    __tablename__ = "items"
+class Book(Base):
+    __tablename__ = "books"
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    data = sqlalchemy.Column(sqlalchemy.Integer)
+    title = sqlalchemy.Column(sqlalchemy.String)
 
     def __repr__(self):
-        return f'{self.id}={self.data}'
+        return f"{self.id}='{self.title}'"
 
 
 GenericType = typing.TypeVar('GenericType')
@@ -35,11 +35,11 @@ class Page:
         return self.prev is not None
 
     def __repr__(self):
-        items_str = 'EMPTY'
-        if len(self.items) > 0:
-            items_str = f'{self.items[0].id}-{self.items[len(self.items) - 1].id}'
-        return f'{items_str} start=({self.get_decrypted_cursor(self.prev)}) ' \
-               f'end=({self.get_decrypted_cursor(self.next)})'
+        return f'PAGE: {self.items} ' \
+               f'prev=({self.get_decrypted_cursor(self.prev)}) ' \
+               f'next=({self.get_decrypted_cursor(self.next)}) ' \
+               f'has_prev={self.has_prev()} ' \
+               f'has_next={self.has_next()} '
 
     @staticmethod
     def get_decrypted_cursor(cursor):
@@ -48,55 +48,85 @@ class Page:
         return crypto.Crypto().decrypt(cursor)
 
 
-async def get_next_items(session, page_size, cursor=None):
+async def get_next_page_of_books(session, page_size, cur_page=None):
+    return await get_next_page(session, "Book", "id", page_size, cur_page)
+
+
+async def get_prev_page_of_books(session, page_size, cur_page=None):
+    return await get_prev_page(session, "Book", "id", page_size, cur_page)
+
+
+# cursor_column_name MUST be unique (for the cursor to not skip entries)
+# and indexed (for efficient order_by)
+async def get_next_page(
+        session,
+        class_name,
+        cursor_column_name,
+        page_size,
+        cur_page=None):
+
+    cursor = None if cur_page is None else cur_page.next
+
+    db_schema_class = getattr(sys.modules[__name__], class_name)
+    cursor_column = getattr(db_schema_class, cursor_column_name)
 
     # If cursor is None, get the first page of items. Otherwise, get
     # a page of items starting at the cursor.
     # Get one rec extra to determine whether there's a next page
-
-    sql = sqlalchemy.select(Item)
+    sql = sqlalchemy.select(db_schema_class)
 
     if cursor is not None:
         decrypted_cursor = int(crypto.Crypto().decrypt(cursor))
-        sql = sql.where(Item.id > decrypted_cursor)
+        sql = sql.where(cursor_column > decrypted_cursor)
 
-    sql = sql.order_by(Item.id).limit(page_size + 1)
+    sql = sql.order_by(cursor_column).limit(page_size + 1)
     recs = (await session.execute(sql)).scalars().all()
 
-    end_cursor = None
+    new_next = None
     if len(recs) > page_size:
         last_id = recs[page_size - 1].id
-        end_cursor = crypto.Crypto().encrypt(str(last_id))
+        new_next = crypto.Crypto().encrypt(str(last_id))
         # remove the extra item from the end of the list
         recs = recs[:-1]
 
-    return Page(recs, cursor, end_cursor)
+    return Page(recs, cursor, new_next)
 
 
-async def get_prev_items(session, page_size, cursor=None):
+# cursor_column_name MUST be unique (for the cursor to not skip entries)
+# and indexed (for efficient order_by)
+async def get_prev_page(
+        session,
+        class_name,
+        cursor_column_name,
+        page_size,
+        cur_page=None):
+
+    cursor = None if cur_page is None else cur_page.prev
+
+    db_schema_class = getattr(sys.modules[__name__], class_name)
+    cursor_column = getattr(db_schema_class, cursor_column_name)
 
     # If cursor is None, get the last page of items. Otherwise, get
     # a page of items ending at the cursor.
     # Get one rec extra to determine whether there's a next page
-
-    sql = sqlalchemy.select(Item)
+    sql = sqlalchemy.select(db_schema_class)
 
     if cursor is not None:
         decrypted_cursor = int(crypto.Crypto().decrypt(cursor))
-        sql = sql.where(Item.id <= decrypted_cursor)
+        sql = sql.where(cursor_column <= decrypted_cursor)
 
-    sql = sql.order_by(Item.id.desc()).limit(page_size + 1)
+    sql = sql.order_by(cursor_column.desc()).limit(page_size + 1)
     recs = (await session.execute(sql)).scalars().all()
     recs.reverse()
 
-    start_cursor = None
+    new_prev = None
     if len(recs) > page_size:
         first_id = recs[0].id
-        start_cursor = crypto.Crypto().encrypt(str(first_id))
+        new_prev = crypto.Crypto().encrypt(str(first_id))
         # remove the extra item from the beginning of the list
         recs = recs[1:]
 
-    return Page(recs, start_cursor, cursor)
+    return Page(recs, new_prev, cursor)
 
 
 async def test():
@@ -119,47 +149,48 @@ async def test():
         await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
-    # Fill a list with values
-    data = [random.randint(1, 100) for i in range(101)]
+    books_count = 101
 
     # Fill the 'items' table in the DB with these values
     async with session_maker() as session:
-        session.add_all([Item(id=i, data=j) for i, j in enumerate(data, 1)])
+        session.add_all([Book(id=i, title=f'Title {i}') for i in range(1, books_count + 1)])
         await session.commit()
 
         page_size = 10
-        print(f'{page_size=}')
+        print(f'{books_count=} {page_size=}')
 
-        # get the first page
-        page = await get_next_items(session, page_size)
-        print(page)
-
-        while page.has_next():
-            page = await get_next_items(session, page_size, page.next)
+        page = None
+        while True:
+            page = await get_next_page_of_books(session, page_size, page)
             print(page)
+            if not page.has_next():
+                break
 
-        print('REACHED END. GOING BACK.')
+        print('\nREACHED END. GOING BACK.')
 
-        while page.has_prev():
-            page = await get_prev_items(session, page_size, page.prev)
+        while True:
+            page = await get_prev_page_of_books(session, page_size, page)
             print(page)
+            if not page.has_prev():
+                break
 
-        print('STARTING AT THE END THIS TIME.')
+        print('\nSTARTING AT THE END THIS TIME.')
 
         # get the last page
-        page = await get_prev_items(session, page_size)
-        print(page)
-
-        while page.has_prev():
-            page = await get_prev_items(session, page_size, page.prev)
+        page = None
+        while True:
+            page = await get_prev_page_of_books(session, page_size, page)
             print(page)
+            if not page.has_prev():
+                break
 
         print('REACHED BEGINNING. GOING TO THE END.')
 
-        while page.has_next():
-            page = await get_next_items(session, page_size, page.next)
+        while True:
+            page = await get_next_page_of_books(session, page_size, page)
             print(page)
-
+            if not page.has_next():
+                break
 
     # Cleanup
     await engine.dispose()
