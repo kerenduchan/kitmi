@@ -114,16 +114,17 @@ class StoreSyncerForOneAccount:
         logging.info(f"{self._account.name}: Storing {len(transactions)} new transactions")
 
         for t in transactions:
-            db_transaction = \
-                db.schema.Transaction(id=t.id,
-                                      date=t.date,
-                                      amount=t.amount,
-                                      account_id=self._account.id,
-                                      payee_id=payees[t.payee],
-                                      subcategory_id=None)
+            rec = db.ops.build_transaction(
+                uid=t.id,
+                date=t.date,
+                amount=t.amount,
+                account_id=self._account.id,
+                payee_id=payees[t.payee]
+            )
+
             # TODO handle case where transaction with this ID is already in the db
-            logging.debug(f"{db_transaction}")
-            session.add(db_transaction)
+            logging.debug(f"{rec}")
+            session.add(rec)
 
         await session.commit()
 
