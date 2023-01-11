@@ -18,10 +18,13 @@ class Item(Base):
         return f'{self.id}={self.data}'
 
 
+GenericType = typing.TypeVar('GenericType')
+
+
 # one page in the pagination
 class Page:
-    def __init__(self, recs: typing.List[Item], prev, next_):
-        self.recs = recs
+    def __init__(self, items: typing.List[GenericType], prev, next_):
+        self.items = items
         self.prev = prev
         self.next = next_
 
@@ -32,13 +35,11 @@ class Page:
         return self.prev is not None
 
     def __repr__(self):
-        recs_str = 'EMPTY'
-        if len(self.recs) > 0:
-            recs_str = f'{self.recs[0].id}-{self.recs[len(self.recs) - 1].id}'
-        s = f'{recs_str} ' \
-            f' start=({self.get_decrypted_cursor(self.prev)}) ' \
-            f'end=({self.get_decrypted_cursor(self.next)})'
-        return s
+        items_str = 'EMPTY'
+        if len(self.items) > 0:
+            items_str = f'{self.items[0].id}-{self.items[len(self.items) - 1].id}'
+        return f'{items_str} start=({self.get_decrypted_cursor(self.prev)}) ' \
+               f'end=({self.get_decrypted_cursor(self.next)})'
 
     @staticmethod
     def get_decrypted_cursor(cursor):
