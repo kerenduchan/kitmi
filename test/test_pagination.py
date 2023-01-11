@@ -144,6 +144,23 @@ async def test():
             page = await get_prev_items(session, page_size, page.prev)
             print(page)
 
+        print('STARTING AT THE END THIS TIME.')
+
+        # get the last page
+        page = await get_prev_items(session, page_size)
+        print(page)
+
+        while page.has_prev():
+            page = await get_prev_items(session, page_size, page.prev)
+            print(page)
+
+        print('REACHED BEGINNING. GOING TO THE END.')
+
+        while page.has_next():
+            page = await get_next_items(session, page_size, page.next)
+            print(page)
+
+
     # Cleanup
     await engine.dispose()
 
