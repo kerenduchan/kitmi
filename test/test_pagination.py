@@ -18,76 +18,84 @@ class Item(Base):
         return f'{self.id}={self.data}'
 
 
-class Chunk:
-    def __init__(self, recs: typing.List[Item], cursor_prev, cursor_next):
+# one page in the pagination
+class Page:
+    def __init__(self, recs: typing.List[Item], prev, next_):
         self.recs = recs
-        self.cursor_prev = cursor_prev
-        self.cursor_next = cursor_next
+        self.prev = prev
+        self.next = next_
+
+    def has_next(self):
+        return self.next is not None
+
+    def has_prev(self):
+        return self.prev is not None
 
     def __repr__(self):
         recs_str = 'EMPTY'
         if len(self.recs) > 0:
             recs_str = f'{self.recs[0].id}-{self.recs[len(self.recs) - 1].id}'
         s = f'{recs_str} ' \
-            f' prev=({self.get_decrypted_cursor(self.cursor_prev)}) ' \
-            f'next=({self.get_decrypted_cursor(self.cursor_next)})'
+            f' start=({self.get_decrypted_cursor(self.prev)}) ' \
+            f'end=({self.get_decrypted_cursor(self.next)})'
         return s
 
     @staticmethod
     def get_decrypted_cursor(cursor):
         if cursor is None:
-            return 'None'
-        elif cursor == '':
-            return ''
+            return None
         return crypto.Crypto().decrypt(cursor)
 
 
-async def get_next_chunk_of_items(session, chunk_size, cursor=''):
+async def get_next_items(session, page_size, cursor=None):
 
-    if cursor is None:
-        return Chunk([], None, None)
+    # If cursor is None, get the first page of items. Otherwise, get
+    # a page of items starting at the cursor.
+    # Get one rec extra to determine whether there's a next page
 
-    c = crypto.Crypto()
-    decrypted_cursor = 0
-    if cursor != '':
-        decrypted_cursor = int(c.decrypt(cursor))
+    sql = sqlalchemy.select(Item)
 
-    # get one rec extra to determine whether there's a next chunk
-    sql = sqlalchemy.select(Item).where(Item.id > decrypted_cursor).order_by(Item.id).limit(chunk_size + 1)
+    if cursor is not None:
+        decrypted_cursor = int(crypto.Crypto().decrypt(cursor))
+        sql = sql.where(Item.id > decrypted_cursor)
+
+    sql = sql.order_by(Item.id).limit(page_size + 1)
     recs = (await session.execute(sql)).scalars().all()
 
-    cursor_next = None
-    if len(recs) > chunk_size:
-        last_id = recs[chunk_size - 1].id
-        cursor_next = c.encrypt(str(last_id))
+    end_cursor = None
+    if len(recs) > page_size:
+        last_id = recs[page_size - 1].id
+        end_cursor = crypto.Crypto().encrypt(str(last_id))
         # remove the extra item from the end of the list
         recs = recs[:-1]
 
-    chunk = Chunk(recs, cursor, cursor_next)
-    return chunk
+    return Page(recs, cursor, end_cursor)
 
 
-async def get_prev_chunk_of_items(session, chunk_size, cursor=''):
-    if cursor == '':
-        return Chunk([], None, '')
+async def get_prev_items(session, page_size, cursor=None):
 
-    c = crypto.Crypto()
-    decrypted_cursor = 0
-    if cursor != '':
-        decrypted_cursor = int(c.decrypt(cursor))
+    # If cursor is None, get the last page of items. Otherwise, get
+    # a page of items ending at the cursor.
+    # Get one rec extra to determine whether there's a next page
 
-    sql = sqlalchemy.select(Item).where(Item.id <= decrypted_cursor).order_by(Item.id.desc()).limit(chunk_size + 1)
+    sql = sqlalchemy.select(Item)
+
+    if cursor is not None:
+        decrypted_cursor = int(crypto.Crypto().decrypt(cursor))
+        sql = sql.where(Item.id <= decrypted_cursor)
+
+    sql = sql.order_by(Item.id.desc()).limit(page_size + 1)
     recs = (await session.execute(sql)).scalars().all()
     recs.reverse()
 
-    cursor_prev = ''
-    if len(recs) > chunk_size:
+    start_cursor = None
+    if len(recs) > page_size:
         first_id = recs[0].id
-        cursor_prev = c.encrypt(str(first_id))
+        start_cursor = crypto.Crypto().encrypt(str(first_id))
         # remove the extra item from the beginning of the list
         recs = recs[1:]
-    c = Chunk(recs, cursor_prev, cursor)
-    return c
+
+    return Page(recs, start_cursor, cursor)
 
 
 async def test():
@@ -118,22 +126,22 @@ async def test():
         session.add_all([Item(id=i, data=j) for i, j in enumerate(data, 1)])
         await session.commit()
 
-        chunk_size = 10
-        print(f'{chunk_size=}')
-        cursor = ''
+        page_size = 10
+        print(f'{page_size=}')
 
-        chunk = None
-        while cursor is not None:
-            chunk = await get_next_chunk_of_items(session, chunk_size, cursor)
-            print(chunk)
-            cursor = chunk.cursor_next
+        # get the first page
+        page = await get_next_items(session, page_size)
+        print(page)
+
+        while page.has_next():
+            page = await get_next_items(session, page_size, page.next)
+            print(page)
 
         print('REACHED END. GOING BACK.')
-        cursor = chunk.cursor_prev
-        while cursor != '':
-            chunk = await get_prev_chunk_of_items(session, chunk_size, cursor)
-            print(chunk)
-            cursor = chunk.cursor_prev
+
+        while page.has_prev():
+            page = await get_prev_items(session, page_size, page.prev)
+            print(page)
 
     # Cleanup
     await engine.dispose()
