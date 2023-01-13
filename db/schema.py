@@ -61,7 +61,6 @@ class Payee(Base):
 class Transaction(Base):
     __tablename__ = "transactions"
     id = sqlalchemy.Column(sqlalchemy.String, primary_key=True)
-    cursor = sqlalchemy.Column(sqlalchemy.String, index=True, nullable=False)
     date = sqlalchemy.Column(sqlalchemy.Date, nullable=False)
     amount = sqlalchemy.Column(sqlalchemy.Float, nullable=False)
     account_id = sqlalchemy.Column(

@@ -368,16 +368,10 @@ async def update_payee(session, payee_id, subcategory_id, note):
 
 
 def build_transaction(uid, date, amount, account_id, payee_id, subcategory_id=None, note=''):
-    # transactions can be paginated by date, but date is not unique. Need to
-    # save a synthetic cursor column to allow pagination. It is unique, and
-    # it retains the order of the date column. This column cannot be created
-    # on the fly because it will harm pagination performance.
-    cursor = date.isoformat() + '_' + str(uid)
 
     # create the transaction
     return db.schema.Transaction(
         id=uid,
-        cursor=cursor,
         date=date,
         amount=amount,
         account_id=account_id,
