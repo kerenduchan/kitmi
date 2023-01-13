@@ -1,12 +1,13 @@
+import math
 import logging
-import db.session
-import db.schema
+import uuid
+import crypto
 import sqlalchemy
 import sqlalchemy.orm
 import sqlalchemy.dialects.sqlite
-import uuid
-import crypto
 import sqlalchemy.exc
+import db.session
+import db.schema
 import model.subcategory_usage_info
 
 
@@ -34,6 +35,35 @@ async def get_one_by_column(session, class_name, column, value):
 
 async def get_one_by_id(session, class_name, id_):
     return await get_one_by_column(session, class_name, 'id', id_)
+
+
+async def get_page(session, class_name: str, order_by_column_name: str,
+                   limit: int, offset: int):
+    """ Get one page of records of the given class_name
+    using limit and offset """
+    db_schema_class = getattr(db.schema, class_name)
+    order_by_column = getattr(db_schema_class, order_by_column_name)
+
+    sql = sqlalchemy.select(db_schema_class).\
+        limit(limit).offset(offset).\
+        order_by(order_by_column)
+    return (await session.execute(sql)).scalars().all()
+
+
+async def count(session, class_name: str) -> int:
+    """ Return how many records of the given class_name there are
+    in the db """
+    db_schema_class = getattr(db.schema, class_name)
+    sql = sqlalchemy.select([sqlalchemy.func.count()]). \
+        select_from(db_schema_class)
+    return (await session.execute(sql)).scalar()
+
+
+async def count_pages(session, class_name: str, page_size: int) -> int:
+    """ Return how many pages of records of the given class_name and
+    of the given page_size there are in the db """
+    items_count = await count(session, class_name)
+    return int(math.ceil(items_count / page_size))
 
 
 async def get_all_transaction_ids(session, account_id, start_date):

@@ -24,6 +24,54 @@ async def _begin_session_and_get_one_by_id(class_name, id_):
     return gql_schema_class.marshal(rec)
 
 
+DEFAULT_PAGE_SIZE = 20
+
+
+async def _get_page(class_name: str, order_by: str,
+                    page_number: int = 1,
+                    page_size: int = DEFAULT_PAGE_SIZE) \
+        -> gql.schema.Page[gql.schema.GenericType]:
+    """ return a page of items of the given class_name """
+    async with db.session.SessionMaker() as session:
+
+        if page_size == 0:
+            # get all items in one page
+            recs = await db.ops.get_all(session, class_name, order_by)
+            gql_schema_class = getattr(gql.schema, class_name)
+            items = [gql_schema_class.marshal(r) for r in recs]
+            return gql.schema.Page(pages_count=1, items=items)
+
+        if page_size < 0:
+            raise Exception(f'page size ({page_size}) must be >= 0')
+
+        # count how many pages there are in total
+        pages_count = await db.ops.count_pages(
+            session, class_name, page_size)
+
+        if pages_count == 0:
+            # there are no items of the given class_name in the db
+            return gql.schema.Page(pages_count=0, items=[])
+
+        if not 1 <= page_number <= pages_count:
+            raise Exception(f'page number ({page_number}) '
+                            f'is out of range (1-{pages_count})')
+
+        offset = (page_number - 1) * page_size
+
+        # get one extra item, to check if there is a next page
+        page_from_db = await db.ops.get_page(
+            session, class_name, order_by, page_size + 1, offset)
+
+        # determine whether there is a next page
+        has_next_page = len(page_from_db) == page_size + 1
+
+        # Erase the extra book, if there was one.
+        if has_next_page:
+            page_from_db = page_from_db[:-1]
+
+        return gql.schema.Page(pages_count=pages_count, items=page_from_db)
+
+
 @strawberry.type
 class Query:
 
@@ -46,8 +94,12 @@ class Query:
         return await _begin_session_and_get_all("Payee", "name")
 
     @strawberry.field
-    async def transactions(self) -> typing.List[gql.schema.Transaction]:
-        return await _begin_session_and_get_all("Transaction", "date")
+    async def transactions(
+            self, order_by: str = 'date',
+            page_number: int = 1,
+            page_size: int = DEFAULT_PAGE_SIZE) \
+            -> gql.schema.Page[gql.schema.Transaction]:
+        return await _get_page('Transaction', order_by, page_number, page_size)
 
     @strawberry.field
     async def account(self, id: strawberry.ID) -> typing.Optional[gql.schema.Account]:

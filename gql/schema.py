@@ -10,6 +10,15 @@ import summarize.summary_for_one_group
 import model.subcategory_usage_info
 import summarize.balance_summary
 
+GenericType = typing.TypeVar("GenericType")
+
+
+# generic page for pagination
+@strawberry.type
+class Page(typing.List[GenericType]):
+    pages_count: int
+    items: typing.List[GenericType]
+
 
 @strawberry.enum
 class AccountSource(enum.Enum):
