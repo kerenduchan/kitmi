@@ -1,6 +1,22 @@
 from sqlalchemy.ext.asyncio import AsyncSession
+import sqlalchemy.dialects.sqlite
 from db.schema import Payee
 import db.utils
+
+
+async def create_payees_ignore_conflict(session, names):
+    """ Insert the given payee names into the payees table,
+    if they don't already exist. """
+
+    if len(names) == 0:
+        # nothing to do
+        return
+
+    # INSERT INTO payees VALUES ... ON CONFLICT DO NOTHING
+    stmt = (sqlalchemy.dialects.sqlite.insert(db.schema.Payee)).on_conflict_do_nothing()
+    values = [{'name': n} for n in names]
+    await session.execute(stmt, values)
+    await session.commit()
 
 
 async def create_payee(

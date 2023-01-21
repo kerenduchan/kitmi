@@ -30,4 +30,4 @@ class Account:
         return Account(id=strawberry.ID(str(obj.id)),
                        name=obj.name,
                        source=obj.source.value,
-                       username=obj.username)
+                       username=Crypto().decrypt(obj.username))

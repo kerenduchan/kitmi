@@ -1,14 +1,23 @@
+from typing import List
 import logging
 import asyncio
-import db.ops
+from sqlalchemy.ext.asyncio import AsyncSession
 from db.session import session_maker
-import sync.store_syncer_for_one_account
+from db.schema import Payee, Account
+from db.utils import get_all
+from sync.store_syncer_for_one_account import StoreSyncerForOneAccount
+from fetch.i_account_data_fetcher import IAccountDataFetcher
 
 
 class StoreSyncer:
     """ Fetches transactions from all accounts and updates the db accordingly. """
+    _session: AsyncSession
+    _fetchers: List[IAccountDataFetcher]
 
-    def __init__(self, session, fetchers):
+    def __init__(
+            self,
+            session: AsyncSession,
+            fetchers: List[IAccountDataFetcher]):
         self._session = session
         self._fetchers = fetchers
 
@@ -18,8 +27,8 @@ class StoreSyncer:
         # load all accounts and payees from db
         logging.info('Loading accounts and payees from the db')
         (accounts, payees) = await asyncio.gather(
-            db.ops.get_all(self._session, "Account", "id"),
-            db.ops.get_all(self._session, "Payee", "id")
+            get_all(self._session, Account),
+            get_all(self._session, Payee)
         )
 
         logging.info(f'Loaded {len(accounts)} accounts and {len(payees)} payees')
@@ -43,16 +52,14 @@ class StoreSyncer:
         syncers = []
         for fetcher in self._fetchers:
             account = accounts[fetcher.get_account_id()]
-            syncer = \
-                sync.store_syncer_for_one_account.StoreSyncerForOneAccount(
-                    account, fetcher, payees)
+            syncer = StoreSyncerForOneAccount(account, fetcher, payees)
             syncers.append(syncer)
 
         await asyncio.gather(*[
             StoreSyncer._sync_one_account(syncer) for syncer in syncers])
 
     @staticmethod
-    async def _sync_one_account(syncer):
+    async def _sync_one_account(syncer: StoreSyncerForOneAccount) -> None:
         # since this is done concurrently,
         # need to create a separate session for each
         async with session_maker() as session:

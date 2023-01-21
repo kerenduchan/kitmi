@@ -1,4 +1,4 @@
-from typing import TypeVar, Dict, Any
+from typing import TypeVar, Dict, Any, List
 import sqlalchemy
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,9 +12,12 @@ T = TypeVar("T")
 async def get_all(
         session: AsyncSession,
         class_: T,
-        order_by: str | None):
-    sql = sqlalchemy.select(class_).order_by(order_by)
-    res = await session.execute(sql)
+        order_by: str | None = None) -> List[T]:
+    stmt = sqlalchemy.select(class_)
+    if order_by is not None:
+        stmt = stmt.order_by(order_by)
+
+    res = await session.execute(stmt)
     return res.scalars().all()
 
 

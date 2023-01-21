@@ -9,7 +9,6 @@ from api.balance_summary import BalanceSummary
 from api.summary_options import SummaryOptions, SummaryGroupBy
 from db.session import session_maker
 import db.utils
-import db.account
 import db.schema
 from summarize.transactions_summarizer import TransactionsSummarizer
 from summarize.balance_summarizer import BalanceSummarizer
@@ -67,7 +66,7 @@ def get_resolver_fn_no_filter(
 
 async def get_all_accounts(order_by: str | None = "name") -> List[Account]:
     async with session_maker() as session:
-        recs = await db.account.get_all_accounts(session, order_by)
+        recs = await db.utils.get_all(session, db.schema.Account, order_by)
         return [Account.from_db(rec) for rec in recs]
 
 

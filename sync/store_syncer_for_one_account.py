@@ -1,21 +1,31 @@
+from typing import Dict
 import datetime
+import sqlalchemy
+from sqlalchemy.ext.asyncio import AsyncSession
+import logging
 import db.session
-import db.ops
 import db.transaction
 import db.schema
-import sqlalchemy
-import logging
+import db.payee
+from fetch.i_account_data_fetcher import IAccountDataFetcher
 
 
 class StoreSyncerForOneAccount:
     """ Fetches transactions from one account and updates the db accordingly. """
+    _account: db.schema.Account
+    _fetcher: IAccountDataFetcher
+    _payees: Dict[str, int]
 
-    def __init__(self, account, fetcher, payees):
+    def __init__(
+            self,
+            account: db.schema.Account,
+            fetcher: IAccountDataFetcher,
+            payees: Dict[str, int]):
         self._account = account
         self._fetcher = fetcher
         self._payees = payees
 
-    async def sync(self, session):
+    async def sync(self, session: AsyncSession) -> None:
         """ Sync the db for the account """
 
         start_date = self._determine_start_date()
@@ -64,7 +74,7 @@ class StoreSyncerForOneAccount:
 
         logging.info(f"{self._account.name}: Done. Stored {len(transactions)} transactions")
 
-    async def _store_new_payees(self, session, transactions):
+    async def _store_new_payees(self, session: AsyncSession, transactions):
         """ Store any new payees from the given transactions """
 
         # Set of all payees from the given transactions
@@ -82,7 +92,7 @@ class StoreSyncerForOneAccount:
                 logging.debug(f'{p}')
 
         # insert payees that weren't already in the db
-        await db.ops.create_payees_ignore_conflict(session, payee_names)
+        await db.payee.create_payees_ignore_conflict(session, payee_names)
 
         # reload these payees from the db
         logging.info(f"{self._account.name}: Reloading {count} payees from the db")
@@ -115,13 +125,12 @@ class StoreSyncerForOneAccount:
         logging.info(f"{self._account.name}: Storing {len(transactions)} new transactions")
 
         for t in transactions:
-            rec = db.ops.build_transaction(
-                uid=t.id,
+            rec = db.schema.Transaction(
+                id=t.id,
                 date=t.date,
                 amount=t.amount,
                 account_id=self._account.id,
-                payee_id=payees[t.payee]
-            )
+                payee_id=payees[t.payee])
 
             # TODO handle case where transaction with this ID is already in the db
             logging.debug(f"{rec}")

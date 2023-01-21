@@ -1,15 +1,21 @@
+from typing import List
 import json
 import hashlib
 import asyncio
 import datetime
 import dataclasses
-import util
-import fetch.i_account_data_fetcher
+import db.schema
+from crypto import Crypto
+from fetch.i_account_data_fetcher import IAccountDataFetcher
 
 
 @dataclasses.dataclass
 class Transaction:
     """ Represents one transaction received from the scraper """
+    id: str
+    date: datetime.date
+    payee: str
+    amount: float
 
     def __init__(self, rec):
         self.id = hashlib.sha1(repr(rec).encode('utf-8')).hexdigest()
@@ -22,21 +28,35 @@ class Transaction:
                f'amount={self.amount}'
 
 
-class IsraeliBankScraperAccountDataFetcher(fetch.i_account_data_fetcher.IAccountDataFetcher):
+class IsraeliBankScraperAccountDataFetcher(IAccountDataFetcher):
     """ Concrete fetcher that uses the scraper js tool to fetch transactions
     from one account."""
+    _scraper_script: str
+    _account_id: int
+    _source: db.schema.AccountSource
+    _username: str
+    _password: str
 
-    def __init__(self, scraper_script, account_id, source, username, password):
+    def __init__(
+            self,
+            scraper_script: str,
+            account_id: int,
+            source: db.schema.AccountSource,
+            username: str,
+            password: str):
         self._scraper_script = scraper_script
         self._account_id = account_id
         self._source = source
         self._username = username
         self._password = password
 
-    def get_account_id(self):
+    def get_account_id(self) -> int:
         return self._account_id
 
-    async def fetch(self, start_date, end_date=None):
+    async def fetch(
+            self,
+            start_date: datetime.date,
+            end_date: datetime.date = None) -> List[Transaction]:
 
         # adjust the end date to be today if none given
         if end_date is None:
@@ -47,8 +67,8 @@ class IsraeliBankScraperAccountDataFetcher(fetch.i_account_data_fetcher.IAccount
             self._scraper_script,
             self._source.value,
             str(start_date),
-            self._username,
-            self._password]
+            Crypto().decrypt(self._username),
+            Crypto().decrypt(self._password)]
 
         proc = await asyncio.create_subprocess_exec(
             *cmd_and_params,

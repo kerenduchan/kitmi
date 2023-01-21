@@ -5,17 +5,6 @@ import db.utils
 from crypto import Crypto
 
 
-async def get_all_accounts(session: AsyncSession, order_by: str | None):
-    recs = await db.utils.get_all(session, Account, order_by)
-
-    # decrypt username and clear password
-    for r in recs:
-        r.username = Crypto().decrypt(r.username)
-        r.password = ''
-
-    return recs
-
-
 async def create_account(
         session: AsyncSession,
         name: str,
@@ -55,10 +44,8 @@ async def update_account(
         'password': Crypto().encrypt(password) if password is not None else None
     }
 
-    rec = await db.utils.update(
+    return await db.utils.update(
         session, Account, account_id, values)
-    rec.username = Crypto().decrypt(rec.username)
-    return rec
 
 
 async def delete_account(

@@ -2,7 +2,7 @@ import sys
 import argparse
 import logging
 import asyncio
-import db.ops
+import db.account
 import db.schema
 from db.session import session_maker
 import crypto
@@ -56,11 +56,12 @@ async def main():
 
         elif args.command == 'create_account':
             async with session_maker() as s:
-                await db.ops.create_account(s,
-                                            args.name[0],
-                                            args.source,
-                                            args.username[0],
-                                            args.password[0])
+                await db.account.create_account(
+                    s,
+                    args.name[0],
+                    args.source,
+                    args.username[0],
+                    args.password[0])
 
         elif args.command == 'sync':
             async with session_maker() as s:
