@@ -46,27 +46,6 @@ def get_resolver_fn(
     return resolve
 
 
-def get_resolver_fn_no_filter(
-        api_class: ApiClass,
-        db_class: type,
-        default_order_by: str):
-
-    async def resolve(
-            order_by: str | None = default_order_by,
-            limit: int = DEFAULT_LIMIT,
-            offset: int = 0) -> PaginationWindow[api_class]:
-
-        async with session_maker() as session:
-            window = await db.utils.get(
-                session, db_class, order_by, None, limit, offset)
-
-            return PaginationWindow[api_class](
-                items=[api_class.from_db(item) for item in window.items],
-                total_items_count=window.total_items_count)
-
-    return resolve
-
-
 async def get_transactions(
         order_by: str | None = "date",
         filter: TransactionsFilter | None = None,
