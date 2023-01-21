@@ -1,6 +1,7 @@
 import datetime
 import db.session
 import db.ops
+import db.transaction
 import db.schema
 import sqlalchemy
 import logging
@@ -27,7 +28,7 @@ class StoreSyncerForOneAccount:
                       f"Getting all stored transaction IDs for this account starting at "
                       f"{start_date}")
 
-        transaction_ids = await db.ops.get_all_transaction_ids(
+        transaction_ids = await db.transaction.get_all_transaction_ids(
             session, self._account.id, start_date)
 
         logging.info(f'{self._account.name}: Loaded {len(transaction_ids)} transaction IDs')

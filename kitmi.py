@@ -4,7 +4,7 @@ import logging
 import asyncio
 import db.ops
 import db.schema
-import db.session
+from db.session import session_maker
 import crypto
 import do_sync
 import init_logging
@@ -55,7 +55,7 @@ async def main():
             await db.session.engine.dispose()
 
         elif args.command == 'create_account':
-            async with db.session.SessionMaker() as s:
+            async with session_maker() as s:
                 await db.ops.create_account(s,
                                             args.name[0],
                                             args.source,
@@ -63,7 +63,7 @@ async def main():
                                             args.password[0])
 
         elif args.command == 'sync':
-            async with db.session.SessionMaker() as s:
+            async with session_maker() as s:
                 await do_sync.do_sync(s, args.scraper[0])
 
     except Exception as e:

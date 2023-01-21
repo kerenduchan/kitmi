@@ -18,14 +18,14 @@ class Crypto:
             self._load_key()
 
         f = cryptography.fernet.Fernet(self._key)
-        return f.encrypt(s.encode())
+        return f.encrypt(bytes(s, 'utf-8')).decode('utf-8')
 
     def decrypt(self, s):
         if self._key is None:
             self._load_key()
 
         f = cryptography.fernet.Fernet(self._key)
-        return f.decrypt(s).decode()
+        return f.decrypt(s).decode('utf-8')
 
     def _load_key(self):
         with open(KEY_FILENAME, 'rb') as f:

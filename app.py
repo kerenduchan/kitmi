@@ -1,25 +1,28 @@
-import strawberry
-import fastapi
+from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
+from strawberry.fastapi import GraphQLRouter
+from strawberry.schema import Schema
 from starlette.middleware.cors import CORSMiddleware
-import gql.query
-import gql.mutation
-import gql.context
-import init_logging
+from api.query import Query
+from api.mutation import Mutation
+from api.context import Context
+from init_logging import init_logging
 
-init_logging.init_logging()
 
-schema = strawberry.Schema(query=gql.query.Query, mutation=gql.mutation.Mutation)
-graphql_app = strawberry.fastapi.GraphQLRouter(schema, context_getter=gql.context.get_context)
+def get_context():
+    return Context()
 
-app = fastapi.FastAPI()
 
-origins = [
-    "http://localhost:5173"
-]
+init_logging()
+
+schema = Schema(query=Query, mutation=Mutation)
+graphql_app = GraphQLRouter(schema, context_getter=get_context)
+
+app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["POST", "GET"],
     allow_headers=["*"],
@@ -27,3 +30,8 @@ app.add_middleware(
 )
 
 app.include_router(graphql_app, prefix="/graphql")
+
+
+@app.get("/")
+async def root():
+    return RedirectResponse(url="/graphql")

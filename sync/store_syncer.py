@@ -1,7 +1,7 @@
 import logging
 import asyncio
 import db.ops
-import db.session
+from db.session import session_maker
 import sync.store_syncer_for_one_account
 
 
@@ -55,5 +55,5 @@ class StoreSyncer:
     async def _sync_one_account(syncer):
         # since this is done concurrently,
         # need to create a separate session for each
-        async with db.session.SessionMaker() as session:
+        async with session_maker() as session:
             await syncer.sync(session)
