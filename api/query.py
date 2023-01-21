@@ -1,12 +1,13 @@
 from typing import List
 import strawberry
 from api.pagination_window import PaginationWindow
-from api.query_resolvers import get_resolver_fn_no_filter, get_all_accounts, summary, balance_summary, \
-    get_all_categories, get_all_subcategories
+from api.query_resolvers import get_resolver_fn, get_resolver_fn_no_filter, get_all_accounts, \
+    summary, balance_summary, get_all_categories, get_all_subcategories
 from api.category import Category
 from api.subcategory import Subcategory
 from api.payee import Payee
 from api.transaction import Transaction
+from api.transactions_filter import TransactionsFilter
 from api.account import Account
 from api.summary import Summary
 from api.balance_summary import BalanceSummary
@@ -33,7 +34,7 @@ class Query:
         description="get payees")
 
     transactions: PaginationWindow[Transaction] = strawberry.field(
-        resolver=get_resolver_fn_no_filter(Transaction, db.schema.Transaction, "date"),
+        resolver=get_resolver_fn(Transaction, TransactionsFilter, db.schema.Transaction, "date"),
         description="get transactions")
 
     summary: Summary = strawberry.field(
