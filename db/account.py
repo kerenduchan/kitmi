@@ -22,7 +22,6 @@ async def create_account(
         password=Crypto().encrypt(password))
 
     rec = await db.utils.create(session, rec)
-    rec.username = Crypto().decrypt(rec.username)
     return rec
 
 
