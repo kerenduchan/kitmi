@@ -16,8 +16,8 @@ class BalanceSummary:
     @staticmethod
     def from_db(obj: summarize.balance_summary.BalanceSummary) -> "BalanceSummary":
         return BalanceSummary(
-            income=Summary.marshal(obj.income),
-            expenses=Summary.marshal(obj.expenses),
+            income=Summary.from_db(obj.income),
+            expenses=Summary.from_db(obj.expenses),
             savings=obj.savings,
             savings_total=obj.savings_total,
             savings_percentages=obj.savings_percentages,

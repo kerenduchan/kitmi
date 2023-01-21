@@ -25,7 +25,7 @@ class Subcategory:
     async def payees(self, info: Info) \
             -> List[Annotated["Payee", strawberry.lazy("api.payee")]]:
         payees = await info.context.dataloaders["payees_by_subcategory_id"].load(int(self.id))
-        return [Payee.marshal(p) for p in payees]
+        return [Payee.from_db(p) for p in payees]
 
     @staticmethod
     def from_db(obj: db.schema.Subcategory) -> "Subcategory":

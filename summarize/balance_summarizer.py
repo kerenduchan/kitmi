@@ -37,12 +37,14 @@ class BalanceSummarizer:
         for income, expense in income_and_expenses:
             saving = income - expense
             summary.savings.append(saving)
-            summary.savings_percentages.append(int(100 * saving / income))
+            saving_percentage = int(100 * saving / income) if income != 0 else 0
+            summary.savings_percentages.append(saving_percentage)
 
         # fill savings_total
         summary.savings_total = summary.income.sum_total - summary.expenses.sum_total
 
         # fill savings_total_percentage
-        summary.savings_total_percentage = int(100 * summary.savings_total / summary.income.sum_total)
+        summary.savings_total_percentage = int(100 * summary.savings_total / summary.income.sum_total) \
+            if summary.income.sum_total != 0 else 0
 
         return summary

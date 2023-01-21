@@ -107,4 +107,4 @@ async def balance_summary(start_date: date,
             start_date,
             end_date,
             summarize.options.SummaryGroupBy(group_by.value))
-    return BalanceSummary.marshal(res)
+    return BalanceSummary.from_db(res)

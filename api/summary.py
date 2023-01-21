@@ -15,7 +15,7 @@ class Summary:
     def from_db(obj: summarize.summary.Summary) -> "Summary":
         return Summary(
             buckets=obj.buckets,
-            groups=[SummaryForOneGroup.marshal(g) for g_id, g in obj.groups.items()],
+            groups=[SummaryForOneGroup.from_db(g) for g_id, g in obj.groups.items()],
             bucket_totals=obj.bucket_totals,
             sum_total=obj.sum_total
         )

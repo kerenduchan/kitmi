@@ -9,6 +9,7 @@ from api.payee import Payee
 from api.transaction import Transaction
 from api.account import Account
 from api.summary import Summary
+from api.balance_summary import BalanceSummary
 import db.schema
 
 
@@ -39,6 +40,6 @@ class Query:
         resolver=summary,
         description="get summary")
 
-    balance_summary: Summary = strawberry.field(
+    balance_summary: BalanceSummary = strawberry.field(
         resolver=balance_summary,
         description="get balance summary")
