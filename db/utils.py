@@ -82,6 +82,14 @@ async def update(session: AsyncSession,
     if not values:
         raise Exception('nothing to update')
 
+    return await update_values(session, class_, item_id, values)
+
+
+async def update_values(
+        session: AsyncSession,
+        class_: T,
+        item_id: KeyType,
+        values: Dict[str, Any]):
     # update the db
     sql = sqlalchemy.update(class_).\
         where(class_.id == item_id).\

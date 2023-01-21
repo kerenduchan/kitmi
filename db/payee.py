@@ -38,18 +38,23 @@ async def create_payee(
 async def update_payee(
         session: AsyncSession,
         payee_id: int,
+        subcategory_id: int | None,
         name: str | None = None,
-        subcategory_id: int | None = None,
         note: str | None = None) -> Payee:
 
     # don't allow empty name for payee
     db.utils.test_not_empty(name, "Payee name")
 
-    values = {
-        'name': name,
-        'subcategory_id': subcategory_id,
-        'note': note,
-    }
+    # None for subcategory_id doesn't mean don't update,
+    # it means update to be null
+    values = {'subcategory_id': subcategory_id}
 
-    return await db.utils.update(
+    if name is not None:
+        values['name'] = name
+
+    if note is not None:
+        values['note'] = note
+
+    return await db.utils.update_values(
         session, Payee, payee_id, values)
+

@@ -70,9 +70,23 @@ async def get_transactions(
 async def update_transaction(
         session: AsyncSession,
         transaction_id: int,
+        subcategory_id: int | None,
         override_subcategory: bool | None = None,
-        subcategory_id: int  | None = None,
         note: str | None = None) -> db.schema.Transaction:
+
+    # None for subcategory_id doesn't mean don't update,
+    # it means update to be null
+    values = {'subcategory_id': subcategory_id}
+
+    if override_subcategory is not None:
+        values['override_subcategory'] = override_subcategory
+
+    if note is not None:
+        values['note'] = note
+
+    return await db.utils.update_values(
+        session, Transaction, transaction_id, values)
+
 
     values = {
         'override_subcategory': override_subcategory,
