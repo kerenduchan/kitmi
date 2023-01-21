@@ -11,8 +11,6 @@ class TransactionsFilter(IDbFilter):
 
     def apply(self, stmt):
 
-        print(f'TransactionsFilter {self.categorized} {self.payee_id}')
-
         if self.categorized is not None:
             # need the payee's subcategory for this
             stmt = stmt.join(Transaction.payee)

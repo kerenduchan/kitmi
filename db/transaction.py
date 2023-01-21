@@ -46,7 +46,6 @@ async def get_transactions(
     if db_filter:
         sql = db_filter.apply(sql)
 
-    print(sql)
     res = await session.execute(sql)
     items = res.scalars().all()
 
