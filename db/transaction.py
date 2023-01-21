@@ -38,8 +38,7 @@ async def get_transactions(
     order_by_column = getattr(Transaction, order_by)
 
     # get the items in the pagination window
-    sql = sqlalchemy.select(Transaction) \
-        if db_filter is None or db_filter.categorized is None \
+    sql = sqlalchemy.select(Transaction) if db_filter is None or db_filter.categorized is None \
         else sqlalchemy.select(Transaction, Payee)
 
     sql = sql.order_by(order_by_column).limit(limit).offset(offset)
@@ -47,13 +46,19 @@ async def get_transactions(
     if db_filter:
         sql = db_filter.apply(sql)
 
+    print(sql)
     res = await session.execute(sql)
     items = res.scalars().all()
 
     # get the total items count
-    sql = sqlalchemy.select([sqlalchemy.func.count()]).select_from(Transaction, Payee)
+    sql = sqlalchemy.select([sqlalchemy.func.count()])
+
+    sql = sql.select_from(Transaction) if db_filter is None or db_filter.categorized is None \
+        else sql.select_from(Transaction, Payee)
+
     if db_filter:
         sql = db_filter.apply(sql)
+
     res = await session.execute(sql)
     total_items_count = res.scalar()
 
