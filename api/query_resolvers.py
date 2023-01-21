@@ -4,11 +4,14 @@ from api.pagination_window import PaginationWindow
 from api.account import Account
 from api.category import Category
 from api.subcategory import Subcategory
+from api.transaction import Transaction
+from api.transactions_filter import TransactionsFilter
 from api.summary import Summary
 from api.balance_summary import BalanceSummary
 from api.summary_options import SummaryOptions, SummaryGroupBy
 from db.session import session_maker
 import db.utils
+import db.transaction
 import db.schema
 from summarize.transactions_summarizer import TransactionsSummarizer
 from summarize.balance_summarizer import BalanceSummarizer
@@ -62,6 +65,22 @@ def get_resolver_fn_no_filter(
                 total_items_count=window.total_items_count)
 
     return resolve
+
+
+async def get_transactions(
+        order_by: str | None = "date",
+        filter: TransactionsFilter | None = None,
+        limit: int = DEFAULT_LIMIT,
+        offset: int = 0) -> PaginationWindow[Transaction]:
+    db_filter = None if filter is None else filter.to_db_filter()
+
+    async with session_maker() as session:
+        window = await db.transaction.get_transactions(
+            session, order_by, db_filter, limit, offset)
+
+        return PaginationWindow[Transaction](
+            items=[Transaction.from_db(item) for item in window.items],
+            total_items_count=window.total_items_count)
 
 
 async def get_all_accounts(order_by: str | None = "name") -> List[Account]:

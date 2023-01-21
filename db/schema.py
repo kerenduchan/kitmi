@@ -1,5 +1,6 @@
 import enum
 import sqlalchemy.ext.declarative
+from sqlalchemy.orm import relationship
 from sqlalchemy import Column, Integer, String, Enum, Date, ForeignKey
 Base = sqlalchemy.ext.declarative.declarative_base()
 
@@ -52,6 +53,7 @@ class Payee(Base):
     subcategory_id = Column(
         Integer, ForeignKey(Subcategory.id), nullable=True)
     note = Column(String, default="")
+    transactions = relationship("Transaction", back_populates="payee")
 
     def __repr__(self):
         return f'<Payee id={self.id} name={self.name} ' \
@@ -71,6 +73,8 @@ class Transaction(Base):
     subcategory_id = Column(
         Integer, ForeignKey(Subcategory.id), nullable=True)
     note = Column(String, default="")
+    payee = relationship("Payee", back_populates="transactions")
+
 
     def __repr__(self):
         return f'<Transaction id={self.id} date={self.date} amount={self.amount} ' \
