@@ -86,13 +86,3 @@ async def update_transaction(
 
     return await db.utils.update_values(
         session, Transaction, transaction_id, values)
-
-
-    values = {
-        'override_subcategory': override_subcategory,
-        'subcategory_id': subcategory_id,
-        'note': note
-    }
-
-    return await db.utils.update(
-        session, db.schema.Transaction, transaction_id, values)
