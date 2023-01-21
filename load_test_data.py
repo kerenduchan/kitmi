@@ -10,9 +10,9 @@ import db.payee
 import init_logging
 
 transactions = [
-    {'date': '2022-01-01', 'amount': 20},
-    {'date': '2022-02-02', 'amount': 40},
-    {'date': '2022-03-15', 'amount': 70},
+    {'date': '2022-01-01', 'amount': -20},
+    {'date': '2022-02-02', 'amount': -40},
+    {'date': '2022-03-15', 'amount': -70},
 ]
 
 payees = [
