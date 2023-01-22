@@ -10,7 +10,7 @@ from db.pagination_window import PaginationWindow
 
 async def get_all_transaction_ids(
         session: AsyncSession,
-        account_id: int,
+        account_id: str,
         start_date: datetime.date) -> List[Transaction]:
     """ Get the IDs of all transactions from the db that belong
     to the given account ID and are newer than the given date. """
@@ -69,8 +69,8 @@ async def get_transactions(
 
 async def update_transaction(
         session: AsyncSession,
-        transaction_id: int,
-        subcategory_id: int | None,
+        transaction_id: str,
+        subcategory_id: str | None,
         override_subcategory: bool | None = None,
         note: str | None = None) -> db.schema.Transaction:
 

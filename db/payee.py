@@ -22,7 +22,7 @@ async def create_payees_ignore_conflict(session, names):
 async def create_payee(
         session: AsyncSession,
         name: str,
-        subcategory_id: int | None = None,
+        subcategory_id: str | None = None,
         note: str = "") -> Payee:
 
     # don't allow empty name for payee

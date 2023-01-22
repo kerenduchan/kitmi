@@ -27,7 +27,7 @@ async def create_account(
 
 async def update_account(
         session: AsyncSession,
-        account_id: int,
+        account_id: str,
         name: str | None = None,
         source: AccountSource | None = None,
         username: str | None = None,
@@ -49,7 +49,7 @@ async def update_account(
 
 async def delete_account(
         session: AsyncSession,
-        account_id: int) -> int:
+        account_id: str) -> int:
     # check if this account has any transactions
     sql = sqlalchemy.select(Transaction).\
         where(Transaction.account_id == account_id).limit(1)

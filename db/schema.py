@@ -1,8 +1,10 @@
 import enum
-import sqlalchemy.ext.declarative
+from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import relationship
-from sqlalchemy import Column, Integer, String, Enum, Date, ForeignKey
-Base = sqlalchemy.ext.declarative.declarative_base()
+from sqlalchemy import Column, Integer, String, Enum, Date, ForeignKey, Boolean, Float
+import uuid
+
+Base = declarative_base()
 
 
 class AccountSource(enum.Enum):
@@ -12,7 +14,7 @@ class AccountSource(enum.Enum):
 
 class Account(Base):
     __tablename__ = "accounts"
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String, nullable=False, unique=True)
     source = Column(Enum(AccountSource), nullable=False)
     username = Column(String, nullable=False)
@@ -25,11 +27,11 @@ class Account(Base):
 
 class Category(Base):
     __tablename__ = "categories"
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String, nullable=False, unique=True)
-    is_expense = Column(sqlalchemy.Boolean, nullable=False)
+    is_expense = Column(Boolean, nullable=False)
     order = Column(Integer, nullable=False)
-    exclude_from_reports = Column(sqlalchemy.Boolean, nullable=False, default=False)
+    exclude_from_reports = Column(Boolean, nullable=False, default=False)
 
     def __repr__(self):
         return f'<Category id={self.id} name={self.name} is_expense={self.is_expense}>'
@@ -37,7 +39,7 @@ class Category(Base):
 
 class Subcategory(Base):
     __tablename__ = "subcategories"
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String, nullable=False, unique=True)
     category_id = Column(
         Integer, ForeignKey(Category.id), nullable=False)
@@ -48,7 +50,7 @@ class Subcategory(Base):
 
 class Payee(Base):
     __tablename__ = "payees"
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String, nullable=False, unique=True)
     subcategory_id = Column(
         Integer, ForeignKey(Subcategory.id), nullable=True)
@@ -64,12 +66,12 @@ class Transaction(Base):
     __tablename__ = "transactions"
     id = Column(String, primary_key=True)
     date = Column(Date, nullable=False)
-    amount = Column(sqlalchemy.Float, nullable=False)
+    amount = Column(Float, nullable=False)
     account_id = Column(
         Integer, ForeignKey(Account.id), nullable=False)
     payee_id = Column(
         Integer, ForeignKey(Payee.id), nullable=False)
-    override_subcategory = Column(sqlalchemy.Boolean, nullable=False, default=False)
+    override_subcategory = Column(Boolean, nullable=False, default=False)
     subcategory_id = Column(
         Integer, ForeignKey(Subcategory.id), nullable=True)
     note = Column(String, default="")

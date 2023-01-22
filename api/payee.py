@@ -21,13 +21,13 @@ class Payee:
             -> Optional[Annotated["Subcategory", strawberry.lazy("api.subcategory")]]:
         if self.subcategory_id is None:
             return None
-        subcategory = await info.context.dataloaders["subcategory_by_id"].load(int(self.subcategory_id))
+        subcategory = await info.context.dataloaders["subcategory_by_id"].load(self.subcategory_id)
         return api.subcategory.Subcategory.from_db(subcategory)
 
     @strawberry.field
     async def transactions(self, info: Info) \
             -> List[Annotated["Transaction", strawberry.lazy("api.transaction")]]:
-        transactions = await info.context.dataloaders["transactions_by_payee_id"].load(int(self.id))
+        transactions = await info.context.dataloaders["transactions_by_payee_id"].load(self.id)
         return [Transaction.from_db(t) for t in transactions]
 
     @staticmethod

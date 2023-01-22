@@ -42,7 +42,7 @@ async def update_account(
     async with session_maker() as session:
         rec = await db.account.update_account(
             session=session,
-            account_id=int(account_id),
+            account_id=account_id,
             name=name,
             source=db.schema.AccountSource(source.value),
             username=username,
@@ -52,7 +52,7 @@ async def update_account(
 
 async def delete_account(account_id: strawberry.ID) -> Count:
     async with session_maker() as session:
-        count = await db.account.delete_account(session, int(account_id))
+        count = await db.account.delete_account(session, account_id)
         return Count(count=count)
 
 # ---------------------------------------------------------------
@@ -80,25 +80,25 @@ async def update_category(
 
     async with session_maker() as session:
         rec = await db.category.update_category(
-            session, int(category_id), name, is_expense, exclude_from_reports)
+            session, category_id, name, is_expense, exclude_from_reports)
         return Category.from_db(rec)
 
 
 async def delete_category(category_id: strawberry.ID) -> Count:
     async with session_maker() as session:
-        count = await db.category.delete_category(session, int(category_id))
+        count = await db.category.delete_category(session, category_id)
         return Count(count=count)
 
 
 async def move_category_up(category_id: strawberry.ID) -> Category:
     async with session_maker() as session:
-        rec = await db.category.move_category(session, int(category_id), is_down=False)
+        rec = await db.category.move_category(session, category_id, is_down=False)
         return Category.from_db(rec)
 
 
 async def move_category_down(category_id: strawberry.ID) -> Category:
     async with session_maker() as session:
-        rec = await db.category.move_category(session, int(category_id), is_down=True)
+        rec = await db.category.move_category(session, category_id, is_down=True)
         return Category.from_db(rec)
 
 # ---------------------------------------------------------------
@@ -123,7 +123,7 @@ async def update_subcategory(
 
     async with session_maker() as session:
         rec = await db.subcategory.update_subcategory(
-            session, int(subcategory_id), name, category_id)
+            session, subcategory_id, name, category_id)
         return Subcategory.from_db(rec)
 
 
@@ -158,9 +158,9 @@ async def update_payee(
     async with session_maker() as session:
         rec = await db.payee.update_payee(
             session=session,
-            payee_id=int(payee_id),
+            payee_id=payee_id,
             name=name,
-            subcategory_id=int(subcategory_id) if subcategory_id is not None else None,
+            subcategory_id=subcategory_id,
             note=note)
         return Payee.from_db(rec)
 
@@ -179,6 +179,6 @@ async def update_transaction(
             session=session,
             transaction_id=transaction_id,
             override_subcategory=override_subcategory,
-            subcategory_id=int(subcategory_id) if subcategory_id is not None else None,
+            subcategory_id=subcategory_id,
             note=note)
         return Transaction.from_db(rec)

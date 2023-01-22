@@ -19,7 +19,7 @@ class Category:
     @strawberry.field
     async def subcategories(self, info: Info) \
             -> List[Annotated["Subcategory", strawberry.lazy("api.subcategory")]]:
-        subcategories = await info.context.dataloaders["subcategories_by_category_id"].load(int(self.id))
+        subcategories = await info.context.dataloaders["subcategories_by_category_id"].load(self.id)
         return [api.subcategory.Subcategory.from_db(s) for s in subcategories]
 
     @staticmethod

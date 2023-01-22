@@ -18,13 +18,13 @@ class Subcategory:
     @strawberry.field
     async def category(self, info: Info) \
             -> Annotated["Category", strawberry.lazy("api.category")]:
-        category = await info.context.dataloaders["category_by_id"].load(int(self.category_id))
+        category = await info.context.dataloaders["category_by_id"].load(self.category_id)
         return api.category.Category.from_db(category)
 
     @strawberry.field
     async def payees(self, info: Info) \
             -> List[Annotated["Payee", strawberry.lazy("api.payee")]]:
-        payees = await info.context.dataloaders["payees_by_subcategory_id"].load(int(self.id))
+        payees = await info.context.dataloaders["payees_by_subcategory_id"].load(self.id)
         return [Payee.from_db(p) for p in payees]
 
     @staticmethod

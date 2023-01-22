@@ -22,7 +22,7 @@ class Account:
 
     @strawberry.field
     async def transactions(self, info: Info) -> List["Transaction"]:
-        transactions = await info.context.dataloaders["transactions_by_account_id"].load(int(self.id))
+        transactions = await info.context.dataloaders["transactions_by_account_id"].load(self.id)
         return [Transaction.from_db(t) for t in transactions]
 
     @staticmethod

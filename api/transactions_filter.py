@@ -5,11 +5,11 @@ import db.transactions_filter
 @strawberry.input
 class TransactionsFilter:
     categorized: bool | None
-    payee_id: int | None
+    payee_id: str | None
 
     def __init__(self,
                  categorized: bool | None = None,
-                 payee_id: int | None = None):
+                 payee_id: str | None = None):
         self.categorized = categorized
         self.payee_id = payee_id
 

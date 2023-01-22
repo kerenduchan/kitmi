@@ -7,7 +7,7 @@ from db.schema import Transaction, Payee
 @dataclass
 class TransactionsFilter(IDbFilter):
     categorized: bool | None
-    payee_id: int | None
+    payee_id: str | None
 
     def apply(self, stmt):
 
