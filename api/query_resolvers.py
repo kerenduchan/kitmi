@@ -17,7 +17,6 @@ from summarize.transactions_summarizer import TransactionsSummarizer
 from summarize.balance_summarizer import BalanceSummarizer
 import summarize.options
 
-DEFAULT_LIMIT = 100
 ApiClass = TypeVar("ApiClass")
 
 
@@ -30,7 +29,7 @@ def get_resolver_fn(
     async def resolve(
             order_by: str | None = default_order_by,
             filter: filter_class | None = None,
-            limit: int = DEFAULT_LIMIT,
+            limit: int = None,
             offset: int = 0) -> PaginationWindow[api_class]:
 
         db_filter = None if filter is None else filter.to_db_filter()
@@ -49,7 +48,7 @@ def get_resolver_fn(
 async def get_transactions(
         order_by: str | None = "date",
         filter: TransactionsFilter | None = None,
-        limit: int = DEFAULT_LIMIT,
+        limit: int = None,
         offset: int = 0) -> PaginationWindow[Transaction]:
     db_filter = None if filter is None else filter.to_db_filter()
 

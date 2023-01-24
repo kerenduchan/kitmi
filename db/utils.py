@@ -50,7 +50,10 @@ async def get(
     order_by_column = getattr(class_, order_by)
 
     # get the items in the pagination window
-    sql = sqlalchemy.select(class_).order_by(order_by_column).limit(limit).offset(offset)
+    sql = sqlalchemy.select(class_).order_by(order_by_column).offset(offset)
+
+    if limit is not None:
+        sql = sql.limit(limit)
 
     if db_filter:
         sql = db_filter.apply(sql)
