@@ -35,27 +35,3 @@ async def update_subcategory(
     return await db.utils.update(
         session, Subcategory, subcategory_id, values)
 
-
-async def delete_subcategory(
-        session: AsyncSession,
-        subcategory_id: int) -> int:
-
-    # commit only after all changes
-    count = await db.utils.delete(session, Subcategory, subcategory_id, do_commit=False)
-
-    # also delete any use of this subcategory ID in the payees and
-    # transactions tables
-
-    sql = sqlalchemy.update(Payee) \
-        .where(Payee.subcategory_id == subcategory_id) \
-        .values(subcategory_id=None)
-    await session.execute(sql)
-
-    sql = sqlalchemy.update(Transaction) \
-        .where(Transaction.subcategory_id == subcategory_id) \
-        .values(subcategory_id=None)
-    await session.execute(sql)
-
-    await session.commit()
-
-    return count

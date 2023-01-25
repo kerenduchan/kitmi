@@ -53,7 +53,7 @@ class Payee(Base):
     id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
     name = Column(String, nullable=False, unique=True)
     subcategory_id = Column(
-        Integer, ForeignKey(Subcategory.id), nullable=True)
+        Integer, ForeignKey(Subcategory.id, ondelete='SET NULL'), nullable=True)
     note = Column(String, default="")
     transactions = relationship("Transaction", back_populates="payee")
 
@@ -73,10 +73,9 @@ class Transaction(Base):
         Integer, ForeignKey(Payee.id), nullable=False)
     override_subcategory = Column(Boolean, nullable=False, default=False)
     subcategory_id = Column(
-        Integer, ForeignKey(Subcategory.id), nullable=True)
+        Integer, ForeignKey(Subcategory.id, ondelete='SET NULL'), nullable=True)
     note = Column(String, default="")
     payee = relationship("Payee", back_populates="transactions")
-
 
     def __repr__(self):
         return f'<Transaction id={self.id} date={self.date} amount={self.amount} ' \

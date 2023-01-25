@@ -129,7 +129,7 @@ async def update_subcategory(
 
 async def delete_subcategory(subcategory_id: strawberry.ID) -> Count:
     async with session_maker() as session:
-        count = await db.subcategory.delete_subcategory(session, subcategory_id)
+        count = await db.utils.delete(session, db.schema.Subcategory, subcategory_id)
         return Count(count=count)
 
 # ---------------------------------------------------------------
