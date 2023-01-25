@@ -28,7 +28,7 @@ class Payee:
     async def transactions(self, info: Info) \
             -> List[Annotated["Transaction", strawberry.lazy("api.transaction")]]:
         transactions = await info.context.dataloaders["transactions_by_payee_id"].load(self.id)
-        return [Transaction.from_db(t) for t in transactions]
+        return [api.transaction.Transaction.from_db(t) for t in transactions]
 
     @staticmethod
     def from_db(obj: db.schema.Payee) -> "Payee":
