@@ -44,10 +44,12 @@ async def main():
 
         if args.command == 'init':
 
-            logging.info('Generating key')
-            crypto.Crypto.generate_key()
+            proceed = ask_yesno("You will lose all your data. Proceed? [y/n]")
+            if proceed:
+                print('Generating key')
+                crypto.Crypto.generate_key()
 
-            logging.info('Creating database')
+                print('Creating database')
             async with db.session.engine.begin() as conn:
                 await conn.run_sync(db.schema.Base.metadata.drop_all)
                 await conn.run_sync(db.schema.Base.metadata.create_all)
@@ -70,6 +72,26 @@ async def main():
     except Exception as e:
         logging.exception(str(e))
         raise e
+
+
+def ask_yesno(question):
+    """
+    Helper to get yes / no answer from user.
+    """
+    yes = ['yes', 'y']
+    no = ['no', 'n']
+
+    done = False
+    print(question)
+    while not done:
+        choice = input().lower()
+        if choice in yes:
+            return True
+        elif choice in no:
+            return False
+        else:
+            print("Please respond by yes or no.")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
