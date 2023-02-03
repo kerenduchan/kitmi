@@ -1,8 +1,11 @@
+from typing import List
 import strawberry
+from strawberry.exceptions import StrawberryGraphQLError
 from api.account import Account, AccountSource
 from api.category import Category
 from api.subcategory import Subcategory
 from api.payee import Payee
+from api.update_payee_input import UpdatePayeeInput
 from api.transaction import Transaction
 from api.count import Count
 from db.session import session_maker
@@ -163,6 +166,21 @@ async def update_payee(
             subcategory_id=subcategory_id,
             note=note)
         return Payee.from_db(rec)
+
+
+async def update_payees(
+        payees: List[UpdatePayeeInput]) -> None:
+
+    async with session_maker() as session:
+        res = await db.payee.update_payees(
+            session=session,
+            payees=[p.to_db() for p in payees]
+        )
+        if res is not None:
+            raise StrawberryGraphQLError(message="failed to update one or more payees",
+                                         extensions=res)
+
+    return None
 
 # ---------------------------------------------------------------
 # transaction

@@ -75,6 +75,10 @@ class Mutation:
         resolver=api.mutation_resolvers.update_payee,
         description="update a payee")
 
+    update_payees = strawberry.mutation(
+        resolver=api.mutation_resolvers.update_payees,
+        description="update many payees")
+
     # ---------------------------------------------------------------
     # transaction
 

@@ -115,6 +115,31 @@ async def update_values(
     return rec
 
 
+async def update_many_values(
+        session: AsyncSession,
+        class_: T,
+        id_to_values: Dict[str, Dict[str, Any]]) -> Dict[str, str] | None:
+
+    failed_ids = {}
+    for id_, values in id_to_values.items():
+        # update the db
+
+        sql = sqlalchemy.update(class_).\
+            where(class_.id == id_).\
+            values(**values)
+        try:
+            res = await session.execute(sql)
+        except IntegrityError as e:
+            if "FOREIGN KEY" in str(e.orig):
+                failed_ids[id_] = 'Foreign key constraint failed.'
+
+    if len(failed_ids) > 0:
+        return failed_ids
+
+    await session.commit()
+    return None
+
+
 async def delete(session: AsyncSession, class_: T, id_: KeyType, do_commit: bool = True) -> int:
     sql = sqlalchemy.delete(class_).\
         where(class_.id == id_)

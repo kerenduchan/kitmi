@@ -1,3 +1,4 @@
+from typing import List, Dict
 from sqlalchemy.ext.asyncio import AsyncSession
 import sqlalchemy.dialects.sqlite
 from db.schema import Payee
@@ -57,4 +58,19 @@ async def update_payee(
 
     return await db.utils.update_values(
         session, Payee, payee_id, values)
+
+
+async def update_payees(
+        session: AsyncSession,
+        payees: List[Payee]) -> Dict[str, str]:
+
+    # None for subcategory_id doesn't mean don't update,
+    # it means update to be null
+
+    # dict of payee ID => values
+    payees_id_to_values = {p.id: {'subcategory_id': p.subcategory_id} for p in payees}
+
+    return await db.utils.update_many_values(
+        session, Payee, payees_id_to_values)
+
 
