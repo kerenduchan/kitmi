@@ -1,5 +1,17 @@
 # kitmi
 
+Kitmi is a basic web-based personal finance management tool.
+
+Functionality:
+- Fetches data from bank and credit card accounts
+- Stores the data in a DB
+- Allows you to categorize each payee / transaction
+- Shows a balance report and expense charts
+
+This repo contains the backend (sqlite DB, python, Strawberry GraphQL API)
+
+The frontend (Vue) can be found here: https://github.com/kerenduchan/kitmi-ui 
+
 ## Installation
 
 ```
