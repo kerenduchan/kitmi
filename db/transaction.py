@@ -37,6 +37,9 @@ async def get_transactions(
 
     order_by_column = getattr(Transaction, order_by)
 
+    if order_by == 'date':
+        order_by_column = order_by_column.desc()
+
     # get the items in the pagination window
     sql = sqlalchemy.select(Transaction) if db_filter is None or db_filter.categorized is None \
         else sqlalchemy.select(Transaction, Payee)
