@@ -1,15 +1,19 @@
-from sqlalchemy import event
+from pathlib import Path
+from sqlalchemy import event, create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+import crypto
 import db.name
 import db.globals
+import db.schema
 
 
 def init_db() -> None:
 
-    # _create_db_file(db.name.DB_FILENAME)
+    crypto.Crypto.generate_key()
+    _create_db_file(db.name.DB_FILENAME)
 
-    print("starting engine using DB file", db.name.DB_FILENAME)
+    print(f'Creating DB engine ({db.name.DB_FILENAME})')
 
     db.globals.engine = create_async_engine(
         f'sqlite+aiosqlite:///{db.name.DB_FILENAME}')
@@ -28,3 +32,13 @@ def init_db() -> None:
         autocommit=False,
         autoflush=False,
     )
+
+
+def _create_db_file(filename):
+    """ create the db file if it doesn't exist """
+    path = Path(filename)
+    if not path.is_file():
+        print(f'Creating DB ({filename})')
+        sync_engine = create_engine(f'sqlite+pysqlite:///{filename}')
+        db.schema.Base.metadata.create_all(sync_engine)
+        sync_engine.dispose()

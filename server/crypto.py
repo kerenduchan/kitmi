@@ -1,6 +1,12 @@
+import os
+from pathlib import Path
 import cryptography.fernet
 
-KEY_FILENAME = 'key.txt'
+key_path = os.getenv("DB_PATH")
+if key_path is None:
+    key_path = "."
+
+KEY_FILENAME = f'{key_path}/key.txt'
 
 
 class Crypto:
@@ -9,6 +15,11 @@ class Crypto:
 
     @staticmethod
     def generate_key():
+        path = Path(KEY_FILENAME)
+        if path.is_file():
+            return
+
+        print('Generating key')
         key = cryptography.fernet.Fernet.generate_key()
         with open(KEY_FILENAME, 'wb') as f:
             f.write(key)
