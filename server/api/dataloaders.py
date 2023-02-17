@@ -1,8 +1,8 @@
 from typing import List, Dict, TypeVar
 from strawberry.dataloader import DataLoader
 import db.schema
-from db.session import session_maker
 from sqlalchemy import select
+import db.globals
 
 
 def get_all_dataloaders() -> Dict[str, DataLoader]:
@@ -46,7 +46,7 @@ def _build_id_fn(class_: DbTableClass):
     the given class by the given list of IDs """
 
     async def get_by_ids(ids: List[str]) -> List[class_]:
-        async with session_maker() as session:
+        async with db.globals.session_maker() as session:
             sql = select(class_).where(class_.id.in_(ids))
             res = await session.execute(sql)
             recs = res.scalars().all()
@@ -66,7 +66,7 @@ def _build_column_fn(class_: DbTableClass, column_name: str):
 
     async def get_by_column(values: List[str]) -> List[class_]:
         column = getattr(class_, column_name)
-        async with session_maker() as session:
+        async with db.globals.session_maker() as session:
             sql = select(class_).where(column.in_(values))
             res = await session.execute(sql)
             recs = res.scalars().all()

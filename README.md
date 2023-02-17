@@ -24,7 +24,7 @@ cd ..
 ## Setup
 
 ```
-python kitmi.py init
+python server/kitmi.py init
 ```
 
 Create the sqlite database file (kitmi.db). Also creates the key.txt file,
@@ -34,13 +34,13 @@ account.
 ## Create account(s)
 
 ```
-python kitmi.py create_account -n <name> -s <max|leumi> -u <username> -p <password>
+python server/kitmi.py create_account -n <name> -s <max|leumi> -u <username> -p <password>
 ```
 
 ## Sync
 
 ```
-python kitmi.py sync -s <project_root_dir>/scraper/scrape.js
+python server/kitmi.py sync -s <project_root_dir>/scraper/scrape.js
 ```
 
 Fetches data (transactions) from all accounts and stores it in the database.
@@ -48,7 +48,7 @@ Fetches data (transactions) from all accounts and stores it in the database.
 ## Run the graphql server
 
 ```
-uvicorn app:app --reload
+uvicorn app:app --app-dir server --reload
 ```
 
 Then browse to: http://127.0.0.0:8000

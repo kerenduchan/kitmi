@@ -1,0 +1,6 @@
+.git
+/kitmi.db
+/kitmi.log
+/key.txt
+node_modules
+venv

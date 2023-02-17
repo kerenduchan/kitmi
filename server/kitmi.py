@@ -4,10 +4,11 @@ import logging
 import asyncio
 import db.account
 import db.schema
-from db.session import session_maker
 import crypto
 import do_sync
 import init_logging
+from db.init import init_db
+import db.globals
 
 
 def get_parser():
@@ -42,6 +43,8 @@ async def main():
         parser = get_parser()
         args = parser.parse_args(sys.argv[1:])
 
+        init_db()
+
         if args.command == 'init':
 
             proceed = ask_yesno("You will lose all your data. Proceed? [y/n]")
@@ -50,14 +53,14 @@ async def main():
                 crypto.Crypto.generate_key()
 
                 print('Creating database')
-            async with db.session.engine.begin() as conn:
+            async with db.globals.engine.begin() as conn:
                 await conn.run_sync(db.schema.Base.metadata.drop_all)
                 await conn.run_sync(db.schema.Base.metadata.create_all)
 
-            await db.session.engine.dispose()
+            await db.globals.engine.dispose()
 
         elif args.command == 'create_account':
-            async with session_maker() as s:
+            async with db.globals.session_maker() as s:
                 await db.account.create_account(
                     s,
                     args.name[0],
@@ -66,7 +69,7 @@ async def main():
                     args.password[0])
 
         elif args.command == 'sync':
-            async with session_maker() as s:
+            async with db.globals.session_maker() as s:
                 await do_sync.do_sync(s, args.scraper[0])
 
     except Exception as e:

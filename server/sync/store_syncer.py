@@ -2,7 +2,7 @@ from typing import List
 import logging
 import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
-from db.session import session_maker
+import db.globals
 from db.schema import Payee, Account
 from db.utils import get_all
 from sync.store_syncer_for_one_account import StoreSyncerForOneAccount
@@ -62,5 +62,5 @@ class StoreSyncer:
     async def _sync_one_account(syncer: StoreSyncerForOneAccount) -> None:
         # since this is done concurrently,
         # need to create a separate session for each
-        async with session_maker() as session:
+        async with db.globals.session_maker() as session:
             await syncer.sync(session)

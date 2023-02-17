@@ -3,7 +3,6 @@ import datetime
 import sqlalchemy
 from sqlalchemy.ext.asyncio import AsyncSession
 import logging
-import db.session
 import db.transaction
 import db.schema
 import db.payee

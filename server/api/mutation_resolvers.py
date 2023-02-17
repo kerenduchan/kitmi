@@ -8,7 +8,7 @@ from api.payee import Payee
 from api.update_payee_input import UpdatePayeeInput
 from api.transaction import Transaction
 from api.count import Count
-from db.session import session_maker
+import db.globals
 import db.category
 import db.subcategory
 import db.payee
@@ -25,7 +25,7 @@ async def create_account(
         source: AccountSource,
         username: str,
         password: str) -> Account:
-    async with session_maker() as session:
+    async with db.globals.session_maker() as session:
         rec = await db.account.create_account(
             session=session,
             name=name,
@@ -42,7 +42,7 @@ async def update_account(
         username: str | None = None,
         password: str | None = None) -> Account:
 
-    async with session_maker() as session:
+    async with db.globals.session_maker() as session:
         rec = await db.account.update_account(
             session=session,
             account_id=account_id,
@@ -54,7 +54,7 @@ async def update_account(
 
 
 async def delete_account(account_id: strawberry.ID) -> Count:
-    async with session_maker() as session:
+    async with db.globals.session_maker() as session:
         count = await db.account.delete_account(session, account_id)
         return Count(count=count)
 
@@ -66,7 +66,7 @@ async def create_category(
         name: str,
         is_expense: bool = True,
         exclude_from_reports: bool = False) -> Category:
-    async with session_maker() as session:
+    async with db.globals.session_maker() as session:
         rec = await db.category.create_category(
             session=session,
             name=name,
@@ -81,26 +81,26 @@ async def update_category(
         is_expense: bool | None = None,
         exclude_from_reports: bool | None = None) -> Category:
 
-    async with session_maker() as session:
+    async with db.globals.session_maker() as session:
         rec = await db.category.update_category(
             session, category_id, name, is_expense, exclude_from_reports)
         return Category.from_db(rec)
 
 
 async def delete_category(category_id: strawberry.ID) -> Count:
-    async with session_maker() as session:
+    async with db.globals.session_maker() as session:
         count = await db.category.delete_category(session, category_id)
         return Count(count=count)
 
 
 async def move_category_up(category_id: strawberry.ID) -> Category:
-    async with session_maker() as session:
+    async with db.globals.session_maker() as session:
         rec = await db.category.move_category(session, category_id, is_down=False)
         return Category.from_db(rec)
 
 
 async def move_category_down(category_id: strawberry.ID) -> Category:
-    async with session_maker() as session:
+    async with db.globals.session_maker() as session:
         rec = await db.category.move_category(session, category_id, is_down=True)
         return Category.from_db(rec)
 
@@ -111,7 +111,7 @@ async def move_category_down(category_id: strawberry.ID) -> Category:
 async def create_subcategory(
         name: str,
         category_id: strawberry.ID) -> Subcategory:
-    async with session_maker() as session:
+    async with db.globals.session_maker() as session:
         rec = await db.subcategory.create_subcategory(
             session=session,
             name=name,
@@ -124,14 +124,14 @@ async def update_subcategory(
         name: str | None = None,
         category_id: strawberry.ID | None = None) -> Subcategory:
 
-    async with session_maker() as session:
+    async with db.globals.session_maker() as session:
         rec = await db.subcategory.update_subcategory(
             session, subcategory_id, name, category_id)
         return Subcategory.from_db(rec)
 
 
 async def delete_subcategory(subcategory_id: strawberry.ID) -> Count:
-    async with session_maker() as session:
+    async with db.globals.session_maker() as session:
         count = await db.utils.delete(session, db.schema.Subcategory, subcategory_id)
         return Count(count=count)
 
@@ -143,7 +143,7 @@ async def create_payee(
         name: str,
         subcategory_id: strawberry.ID | None = None,
         note: str = "") -> Payee:
-    async with session_maker() as session:
+    async with db.globals.session_maker() as session:
         rec = await db.payee.create_payee(
             session=session,
             name=name,
@@ -158,7 +158,7 @@ async def update_payee(
         subcategory_id: strawberry.ID | None = None,
         note: str | None = None) -> Payee:
 
-    async with session_maker() as session:
+    async with db.globals.session_maker() as session:
         rec = await db.payee.update_payee(
             session=session,
             payee_id=payee_id,
@@ -171,7 +171,7 @@ async def update_payee(
 async def update_payees(
         payees: List[UpdatePayeeInput]) -> None:
 
-    async with session_maker() as session:
+    async with db.globals.session_maker() as session:
         res = await db.payee.update_payees(
             session=session,
             payees=[p.to_db() for p in payees]
@@ -192,7 +192,7 @@ async def update_transaction(
         subcategory_id: strawberry.ID | None = None,
         note: str | None = None) -> Transaction:
 
-    async with session_maker() as session:
+    async with db.globals.session_maker() as session:
         rec = await db.transaction.update_transaction(
             session=session,
             transaction_id=transaction_id,

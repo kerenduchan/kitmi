@@ -4,7 +4,8 @@ import logging
 import asyncio
 import db.account
 import db.schema
-from db.session import session_maker
+import db.globals
+from db.init import init_db
 import db.payee
 
 import init_logging
@@ -47,10 +48,12 @@ async def create_transactions(session, account_id, payee_ids):
 
 async def main():
 
+    init_db()
+
     try:
         init_logging.init_logging()
 
-        async with session_maker() as session:
+        async with db.globals.session_maker() as session:
             account = await db.account.create_account(
                 session,
                 "fake1",

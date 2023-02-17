@@ -7,12 +7,14 @@ from api.query import Query
 from api.mutation import Mutation
 from api.context import Context
 from init_logging import init_logging
+from db.init import init_db
 
 
 def get_context():
     return Context()
 
 
+init_db()
 init_logging()
 
 schema = Schema(query=Query, mutation=Mutation)

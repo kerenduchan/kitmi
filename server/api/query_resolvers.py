@@ -9,7 +9,7 @@ from api.transactions_filter import TransactionsFilter
 from api.summary import Summary
 from api.balance_summary import BalanceSummary
 from api.summary_options import SummaryOptions, SummaryGroupBy
-from db.session import session_maker
+import db.globals
 import db.utils
 import db.transaction
 import db.schema
@@ -34,7 +34,7 @@ def get_resolver_fn(
 
         db_filter = None if filter is None else filter.to_db_filter()
 
-        async with session_maker() as session:
+        async with db.globals.session_maker() as session:
             window = await db.utils.get(
                 session, db_class, order_by, db_filter, limit, offset)
 
@@ -52,7 +52,7 @@ async def get_transactions(
         offset: int = 0) -> PaginationWindow[Transaction]:
     db_filter = None if filter is None else filter.to_db_filter()
 
-    async with session_maker() as session:
+    async with db.globals.session_maker() as session:
         window = await db.transaction.get_transactions(
             session, order_by, db_filter, limit, offset)
 
@@ -62,19 +62,19 @@ async def get_transactions(
 
 
 async def get_all_accounts(order_by: str | None = "name") -> List[Account]:
-    async with session_maker() as session:
+    async with db.globals.session_maker() as session:
         recs = await db.utils.get_all(session, db.schema.Account, order_by)
         return [Account.from_db(rec) for rec in recs]
 
 
 async def get_all_categories(order_by: str | None = "order") -> List[Category]:
-    async with session_maker() as session:
+    async with db.globals.session_maker() as session:
         recs = await db.utils.get_all(session, db.schema.Category, order_by)
         return [Category.from_db(rec) for rec in recs]
 
 
 async def get_all_subcategories(order_by: str | None = "name") -> List[Subcategory]:
-    async with session_maker() as session:
+    async with db.globals.session_maker() as session:
         recs = await db.utils.get_all(session, db.schema.Subcategory, order_by)
         return [Subcategory.from_db(rec) for rec in recs]
 
@@ -84,7 +84,7 @@ async def summary(
         end_date: date,
         options: SummaryOptions) -> Summary:
     summarizer = TransactionsSummarizer()
-    async with session_maker() as session:
+    async with db.globals.session_maker() as session:
         res = await summarizer.execute(
             session,
             start_date,
@@ -97,7 +97,7 @@ async def balance_summary(start_date: date,
                           end_date: date,
                           group_by: SummaryGroupBy) -> BalanceSummary:
     summarizer = BalanceSummarizer()
-    async with session_maker() as session:
+    async with db.globals.session_maker() as session:
         res = await summarizer.execute(
             session,
             start_date,
