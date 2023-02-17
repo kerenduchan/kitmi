@@ -4,7 +4,6 @@ import logging
 import asyncio
 import db.account
 import db.schema
-import crypto
 import do_sync
 import init_logging
 from db.init import init_db
@@ -17,9 +16,6 @@ def get_parser():
         description='Fetch and store financial transactions')
 
     subparsers = parser.add_subparsers(dest='command')
-
-    # create
-    subparsers.add_parser('init')
 
     # add_account
     create_account = subparsers.add_parser('create_account')
@@ -45,21 +41,7 @@ async def main():
 
         init_db()
 
-        if args.command == 'init':
-
-            proceed = ask_yesno("You will lose all your data. Proceed? [y/n]")
-            if proceed:
-                print('Generating key')
-                crypto.Crypto.generate_key()
-
-                print('Creating database')
-            async with db.globals.engine.begin() as conn:
-                await conn.run_sync(db.schema.Base.metadata.drop_all)
-                await conn.run_sync(db.schema.Base.metadata.create_all)
-
-            await db.globals.engine.dispose()
-
-        elif args.command == 'create_account':
+        if args.command == 'create_account':
             async with db.globals.session_maker() as s:
                 await db.account.create_account(
                     s,
@@ -75,25 +57,6 @@ async def main():
     except Exception as e:
         logging.exception(str(e))
         raise e
-
-
-def ask_yesno(question):
-    """
-    Helper to get yes / no answer from user.
-    """
-    yes = ['yes', 'y']
-    no = ['no', 'n']
-
-    done = False
-    print(question)
-    while not done:
-        choice = input().lower()
-        if choice in yes:
-            return True
-        elif choice in no:
-            return False
-        else:
-            print("Please respond by yes or no.")
 
 
 if __name__ == "__main__":

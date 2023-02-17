@@ -21,16 +21,6 @@ npm install
 cd ..
 ```
 
-## Setup
-
-```
-python server/kitmi.py init
-```
-
-Create the sqlite database file (kitmi.db). Also creates the key.txt file,
-which is used in order to encrypt/decrypt the username/password of each 
-account.
-
 ## Create account(s)
 
 ```
