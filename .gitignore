@@ -5,3 +5,4 @@ key.txt
 scraper/node_modules
 kitmi.log
 test/*.db
+__pycache__
